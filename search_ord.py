@@ -1,19 +1,38 @@
 """Search and ordering algorithms"""
 
-# Naive selection sort
+# Bubble sort
+
+
+def bubsort(lst: list) -> list:
+    """The bubble sort seems to have nothing to recommend it,
+    except a catchy name and the fact that it leads
+    to some interesting theoretical problems.
+    Donald Knuth
+
+    This is only good to check if a list is already sorted.
+    """
+    swaps = True
+    niter = 0
+    while swaps:
+        swaps = False
+        for idx, _ in enumerate(lst[:-niter - 1]):
+            if lst[idx] > lst[idx + 1]:
+                lst[idx], lst[idx + 1] = lst[idx + 1], lst[idx]
+                swaps = True
+        niter += 1
+    return lst
+
+
+# Selection sort
 
 
 def sesort(lst: list) -> list:
-    """Selection sort. Very inefficient !!!
-    Too lazy to implement a minimum function :))
-    List gets modified also in outer scope, so better
-    to use the nested for loops"""
+    """Selection sort. Destroys the original list"""
     sortl = []
     nnums = len(lst)
     for _ in range(nnums):
-        sortl.append(maxi(lst))
+        sortl.append(min(lst))
         lst.remove(maxi(lst))
-    sortl.reverse()  # This can be omitted if one uses min
     return sortl
 
 
@@ -21,7 +40,7 @@ def sesort(lst: list) -> list:
 
 
 def sesortplus(lst: list) -> list:
-    """A more compact selection sort"""
+    """An improved selection sort (with swapping)"""
     for idx, _ in enumerate(lst):
         minarg = lst.index(min(lst[idx:]))
         lst[idx], lst[minarg] = lst[minarg], lst[idx]
@@ -32,7 +51,10 @@ def sesortplus(lst: list) -> list:
 
 
 def qsort(lst: list) -> list:
-    """A simple quicksort"""
+    """A simple quicksort.
+    Choosing the pivot is the deal. I have taken
+    halve of the array
+    """
     if len(lst) < 2:
         return lst
     piv = lst[len(lst) // 2]
@@ -49,7 +71,7 @@ def qsort(lst: list) -> list:
 # Recursive maximum
 
 
-def maxi(lst):
+def maxi(lst: list) -> int:
     """Maximum of a list"""
     if len(lst) == 1:
         return lst[0]
@@ -59,7 +81,7 @@ def maxi(lst):
 # Loop binary search
 
 
-def binse(elem, lst):
+def binse(elem: int, lst: list) -> int:
     """A loop binary search"""
     init = 0
     fina = len(lst) - 1
@@ -95,7 +117,9 @@ def rebinse(elem: float, lst: list, initpos: int = 0) -> int:
 # Test cases
 
 LST = [22, 333, 4, 55, 66, 0.0001, 33.22]
-SRTLST = qsort(LST)
-print(SRTLST)
-print(binse(333, SRTLST))
-print(rebinse(333, SRTLST))
+ST = bubsort(LST)
+print(ST)
+#  SRTLST = qsort(LST)
+#  print(SRTLST)
+#  print(binse(333, SRTLST))
+#  print(rebinse(333, SRTLST))
