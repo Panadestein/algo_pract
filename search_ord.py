@@ -3,16 +3,47 @@
 # Naive selection sort
 
 
-def sesort(lst):
-    """Selection sort. Very ineffcient !!!
-    Too lazy to implement a minimum function :))"""
+def sesort(lst: list) -> list:
+    """Selection sort. Very inefficient !!!
+    Too lazy to implement a minimum function :))
+    List gets modified also in outer scope, so better
+    to use the nested for loops"""
     sortl = []
     nnums = len(lst)
     for _ in range(nnums):
         sortl.append(maxi(lst))
         lst.remove(maxi(lst))
-    sortl.reverse()
+    sortl.reverse()  # This can be omitted if one uses min
     return sortl
+
+
+# A better selection sort
+
+
+def sesortplus(lst: list) -> list:
+    """A more compact selection sort"""
+    for idx, _ in enumerate(lst):
+        minarg = lst.index(min(lst[idx:]))
+        lst[idx], lst[minarg] = lst[minarg], lst[idx]
+    return lst
+
+
+# Quicksort
+
+
+def qsort(lst: list) -> list:
+    """A simple quicksort"""
+    if len(lst) < 2:
+        return lst
+    piv = lst[len(lst) // 2]
+    leflist, rightlist = [], []
+    lst.remove(piv)
+    for elem in lst:
+        if elem <= piv:
+            leflist.append(elem)
+        else:
+            rightlist.append(elem)
+    return qsort(leflist) + [piv] + qsort(rightlist)
 
 
 # Recursive maximum
@@ -42,11 +73,12 @@ def binse(elem, lst):
             init = pos + 1
     return -1
 
+
 # Recursive binary search
 
 
 def rebinse(elem: float, lst: list, initpos: int = 0) -> int:
-    """A revursive binary search"""
+    """A recursive binary search"""
     pos = len(lst) // 2
     if len(lst) == 1:
         return initpos + pos
@@ -60,10 +92,10 @@ def rebinse(elem: float, lst: list, initpos: int = 0) -> int:
     return -1
 
 
-# Simple test cases
+# Test cases
 
 LST = [22, 333, 4, 55, 66, 0.0001, 33.22]
-SRTLST = sesort(LST)
+SRTLST = qsort(LST)
 print(SRTLST)
 print(binse(333, SRTLST))
 print(rebinse(333, SRTLST))
