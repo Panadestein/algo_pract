@@ -55,6 +55,7 @@ def qsort(lst: list) -> list:
     Choosing the pivot is the deal here. I have taken
     halve of the array's index, but this is not
     the best implementation.
+    Runs in O(n log n)
     """
     if len(lst) < 2:
         return lst
@@ -74,7 +75,8 @@ def qsort(lst: list) -> list:
 
 def mergsort(lst: list) -> list:
     """A merge sort implementation.
-    This algorithm was invented by von Neuman!"""
+    This algorithm was invented by von Neuman!
+    Runs in O(n log n)"""
     if len(lst) == 1:
         return lst
     piv = len(lst) // 2
@@ -82,19 +84,21 @@ def mergsort(lst: list) -> list:
 
 
 def merstep(lsta: list, lstb: list) -> list:
-    """The merging step in mergesort
-    Needs work. This is n^2 atm. Garbage"""
+    """The merging step in mergesort. Runs in O(n)
+    Nested for loops are useless here"""
     merlist = []
-    idx = 0
-    for ela in lsta:
-        for elb in lstb[idx:]:
-            if elb <= ela:
-                merlist.append(elb)
-                idx += 1
-            else:
-                break
-        merlist.append(ela)
-    merlist += lstb[idx:]
+    i = j = 0
+    while i <= len(lsta[:-1]) and j <= len(lstb[:-1]):
+        if lsta[i] <= lstb[j]:
+            merlist.append(lsta[i])
+            i += 1
+        else:
+            merlist.append(lstb[j])
+            j += 1
+    for elem in lsta[i:]:
+        merlist.append(elem)
+    for elem in lstb[j:]:
+        merlist.append(elem)
     return merlist
 
 
@@ -130,7 +134,8 @@ def binse(elem: int, lst: list) -> int:
 
 
 def rebinse(elem: float, lst: list, initpos: int = 0) -> int:
-    """A recursive binary search"""
+    """A recursive binary search
+    Runs in O(log n)"""
     pos = len(lst) // 2
     if len(lst) == 1:
         return initpos + pos
@@ -147,9 +152,4 @@ def rebinse(elem: float, lst: list, initpos: int = 0) -> int:
 # Test cases
 
 LST = [22, 333, -4, 55, 66, 0.0001, 33.22]
-ST = mergsort(LST)
-print(ST)
-#  SRTLST = qsort(LST)
-#  print(SRTLST)
-#  print(binse(333, SRTLST))
-#  print(rebinse(333, SRTLST))
+SRTLST = qsort(LST)
