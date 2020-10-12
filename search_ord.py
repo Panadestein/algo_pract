@@ -52,8 +52,9 @@ def sesortplus(lst: list) -> list:
 
 def qsort(lst: list) -> list:
     """A simple quicksort.
-    Choosing the pivot is the deal. I have taken
-    halve of the array
+    Choosing the pivot is the deal here. I have taken
+    halve of the array's index, but this is not
+    the best implementation.
     """
     if len(lst) < 2:
         return lst
@@ -66,6 +67,35 @@ def qsort(lst: list) -> list:
         else:
             rightlist.append(elem)
     return qsort(leflist) + [piv] + qsort(rightlist)
+
+
+# Merge sort
+
+
+def mergsort(lst: list) -> list:
+    """A merge sort implementation.
+    This algorithm was invented by von Neuman!"""
+    if len(lst) == 1:
+        return lst
+    piv = len(lst) // 2
+    return merstep(mergsort(lst[:piv]), mergsort(lst[piv:]))
+
+
+def merstep(lsta: list, lstb: list) -> list:
+    """The merging step in mergesort
+    Needs work. This is n^2 atm. Garbage"""
+    merlist = []
+    idx = 0
+    for ela in lsta:
+        for elb in lstb[idx:]:
+            if elb <= ela:
+                merlist.append(elb)
+                idx += 1
+            else:
+                break
+        merlist.append(ela)
+    merlist += lstb[idx:]
+    return merlist
 
 
 # Recursive maximum
@@ -116,8 +146,8 @@ def rebinse(elem: float, lst: list, initpos: int = 0) -> int:
 
 # Test cases
 
-LST = [22, 333, 4, 55, 66, 0.0001, 33.22]
-ST = bubsort(LST)
+LST = [22, 333, -4, 55, 66, 0.0001, 33.22]
+ST = mergsort(LST)
 print(ST)
 #  SRTLST = qsort(LST)
 #  print(SRTLST)
