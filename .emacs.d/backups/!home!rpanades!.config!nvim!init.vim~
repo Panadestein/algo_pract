@@ -1,0 +1,113 @@
+"-------------------------------
+"  _   ___     _____ __  __ 
+" | \ | \ \   / /_ _|  \/  |
+" |  \| |\ \ / / | || |\/| |
+" | |\  | \ V /  | || |  | |
+" |_| \_|  \_/  |___|_|  |_|
+"
+" A simple Neovim configuration
+"-------------------------------
+
+" General settings
+
+set nocompatible            " Breaks Vim compatibility
+set encoding=utf-8          " Set encoding
+set showmatch               " Matching parenthesis
+set ignorecase              " Case insensitive
+set mouse=v                 " Middle-click paste with
+set hlsearch                " Highlight search results
+set incsearch               " Enable incremental search
+set tabstop=4               " Tab width
+set softtabstop=4           " Multiple spaces as tabstops 
+set expandtab               " Converts tabs to white space
+set shiftwidth=4            " Width for autoindents
+set autoindent              " Indent a new line as previous
+set number                  " Enable line numbers
+set relativenumber          " Relative line numbers
+set wrap                    " Wrap text
+set wildmode=longest,list   " Bash-like tab completions
+filetype plugin indent on   " Auto-indenting depending on file type
+syntax on                   " Enable syntax highlighting
+set mouse=a                 " Enable mouse click
+set clipboard=unnamedplus   " Use system clipboard
+set ttyfast                 " Speed up scrolling in Vim
+set spell                   " Enable spell checking 
+set backupdir=~/.config/nvim/cache " Directory to store backup files
+filetype plugin on          " Load plugins for specific filetype
+
+" Neovide specific
+
+let g:neovide_refresh_rate=140
+let g:neovide_transparency=0.8
+let g:neovide_fullscreen=v:true
+let neovide_remember_window_size = v:true
+let g:neovide_input_use_logo=v:true
+let g:neovide_cursor_animation_length=0.13
+
+" Plugin settings
+
+call plug#begin("~/.config/nvim/plugged")
+ Plug 'dracula/vim'
+ Plug 'ryanoasis/vim-devicons'
+ Plug 'SirVer/ultisnips'
+ Plug 'honza/vim-snippets'
+ Plug 'scrooloose/nerdtree'
+ Plug 'neovim/nvim-lspconfig'
+ Plug 'glepnir/lspsaga.nvim'
+ Plug 'folke/lsp-colors.nvim'
+ Plug 'hoob3rt/lualine.nvim'
+ Plug 'vim-scripts/indentpython.vim'
+ Plug 'nvie/vim-flake8'
+ Plug 'lisposter/vim-blackboard'
+ Plug 'lervag/vimtex'
+ Plug 'rudrab/vimf90'
+call plug#end()
+
+" Status line
+
+require('')
+
+" Color schemes
+
+if (has("termguicolors"))
+    set termguicolors
+endif
+syntax enable
+
+" Color scheme evening
+
+colorscheme blackboard
+set background=dark
+set splitright
+set splitbelow
+
+"Remember cursor position
+
+au BufWinLeave ?* mkview
+au BufWinEnter ?* silent loadview
+
+" Python stuff (PEP8)
+
+let python_highlight_all=1
+nnoremap <buffer> <F9> :exec '!python' shellescape(@%, 1)<cr>
+au BufNewFile, BufRead *.py
+    \ set tabstop=4        | 
+    \ set softtabstop=4    | 
+    \ set shiftwidth=4     |
+    \ set textwidth=79     |   
+    \ set expandtab        |   
+    \ set autoindent       | 
+    \ set fileformat=unix
+au BufRead, BufNewFile *.py,*.pyw,*.c,*.h match BadWhitespace /\s\+$/
+
+" FORTRAN stuff
+
+let fortran_free_source=1
+let fortran_have_tabs=1
+let fortran_do_enddo=1
+let g:VimF90Linter=1
+
+" TEX stuff
+
+let g:tex_flavor='latex'
+

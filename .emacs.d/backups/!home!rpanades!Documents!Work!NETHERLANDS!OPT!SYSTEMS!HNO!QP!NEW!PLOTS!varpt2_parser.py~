@@ -1,0 +1,55 @@
+"""Parses Quantum Package output to gather variance
+   and PT2 values for each state"""
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Variables definition
+
+NSTATES = 2
+STRVAR = "Variance        ="
+PT2STR = "PT2             ="
+DETSTR = "Summary at N_det ="
+FILS = ["fci_cmax_0505_10000.out", "fci_cmax_0604_10000.out",
+        "fci_cmax_0406_10000.out"]
+
+# File parsing
+
+for fil in FILS:
+    var = []
+    pt2 = []
+    det = []
+    with open(fil, 'r') as infil:
+        for line in infil:
+            if STRVAR in line:
+                var.append(float(line.split()[2]))
+            elif PT2STR in line:
+                pt2.append(float(line.split()[2]))
+            elif DETSTR in line:
+                det.append(float(line.split()[4]))
+
+    vara = np.array(var)[1:]
+    pt2a = np.array(pt2)[1:]
+    deta = np.array(det)[1:]
+
+    vara = vara.reshape(-1, NSTATES)
+    pt2a = pt2a.reshape(-1, NSTATES)
+
+    dvar = []
+    dpt2 = []
+    for idx in range(NSTATES - 1):
+        dvar.append(vara[:, idx + 1] - vara[:, 0])
+        dpt2.append(pt2a[:, idx + 1] - pt2a[:, 0])
+
+    # Plot variance and PT2 gaps
+
+    fig, axs = plt.subplots(2)
+
+    for idx, dval in enumerate(dvar):
+        axs[0].plot(deta, dval)
+        axs[1].plot(deta, dpt2[idx])
+
+    plt.xlabel(r'$N_{det}$')
+    axs[0].set(ylabel=r'$\Delta \sigma^2$')
+    axs[1].set(ylabel=r'$\Delta PT2$')
+    plt.legend([f"State {idx + 1}" for idx in range(NSTATES - 1)])
+    plt.show()

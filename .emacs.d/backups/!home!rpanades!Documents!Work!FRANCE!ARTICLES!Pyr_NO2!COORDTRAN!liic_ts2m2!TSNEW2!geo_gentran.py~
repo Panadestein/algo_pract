@@ -1,0 +1,115 @@
+"""Transforms the reference Pyr-NO2 geometries to internal"""
+import io
+import numpy as np
+import coord_tran as ct
+
+# Initialize variables
+
+NGEOS = 19
+OPTVALS = np.concatenate((np.zeros(26) - 1, np.zeros(3)))
+
+GAUS = True
+ATOMS = {1: ["H", 1.007], 6: ["C", 12.0096],
+         7: ["N", 14.006], 8: ["O", 15.999]}
+INTERNALS = []
+INTERNALS_LABEL = []
+BODYGAUSTS = """%mem=8GB\n%NProc=8
+#P wB97XD/cc-pVDZ Integral(SuperFineGrid) \
+opt=(ts,noeigentest,calcall,noraman,maxcycles=100)
+
+Single point calculation
+
+0 2
+"""
+BODYGAUSMIN = """%mem=8GB\n%NProc=8
+#P wB97XD/cc-pVDZ Integral(SuperFineGrid) \
+opt=(z-matrix,calcall,noraman,maxcycles=100)
+
+Single point calculation
+
+0 2
+"""
+
+BODYGAUSP = """%mem=8GB\n%NProc=8
+#P wB97XD/cc-pVDZ Integral(SuperFineGrid)
+
+Single point calculation
+
+0 2
+"""
+
+# Define function to write xyz file
+
+
+def wrt_geo(geom, name):
+    """
+    Writes a Pyr-NO2 cartesian geometry to a file.
+
+    Parameters
+    ----------
+
+    geom: array(N, 9)
+        The cartesian coordinates of the system
+    name: str
+        The name given to the file
+    """
+    with open(f"./LIIC_XYZ/{name}", "w") as outf:
+        outf.write(f"{len(geom)}\n")
+        outf.write("\n")
+        for cart in geom:
+            for idf, elem in enumerate(cart):
+                if idf == 0:
+                    outf.write(f"{ATOMS[int(elem)][0]} ")
+                else:
+                    outf.write(str(elem) + " ")
+            outf.write("\n")
+
+
+# Define function to write gaussian inputs
+
+
+def gausgen(geometria, fname):
+    """
+    Generates a Gaussian input file for
+    the provided cartesian geometry of Pyr-NO2.
+    The level of theory is hard coded here.
+    Since we deal with Numpy arrays here,
+    we have to buffer the array in a BytesIO object
+    and then obtain the corresponding string.
+    """
+    geoopt = np.insert(geometria, 1, OPTVALS, axis=1)
+    bytesfil = io.BytesIO()
+    np.savetxt(bytesfil, geoopt,
+               fmt=["%d", "%d", "%10.5f", "%10.5f", "%10.5f"])
+    elarray = bytesfil.getvalue().decode('latin1')
+
+    if fname[0] == 't':
+        tofile = f"""%chk={fname}\n{BODYGAUSTS}{elarray} """
+    elif fname[0] == 'm':
+        tofile = f"""%chk={fname}\n{BODYGAUSMIN}{elarray} """
+    else:
+        tofile = f"""%chk={fname}\n{BODYGAUSP}{elarray} """
+
+    with open(f"GAUSSINP/{fname}.com", "w") as fout:
+        fout.write(tofile)
+
+
+# Compute LIIC
+
+TS2 = np.loadtxt('./GEOSREF/tsnew_daniel_mat')
+MN2 = np.loadtxt('./GEOSREF/minf_ts2_mat')
+
+ITS2 = ct.cart2int(TS2)
+IMN2 = ct.cart2int(MN2)
+
+DELTA = IMN2 - ITS2
+
+NEWGS = []
+for i in np.arange(NGEOS + 1):
+    NEWGS.append(ITS2 + i * DELTA / NGEOS)
+
+wrt_geo(ct.int2cart(ITS2), f"tsnew_remade")
+
+for idx, geo in enumerate(NEWGS):
+    gausgen(ct.int2cart(geo), f"geo_liic_ts2min2_{idx:02d}")
+    wrt_geo(ct.int2cart(geo), f"geo_liic_ts2min2_{idx:02d}")

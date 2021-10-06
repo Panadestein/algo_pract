@@ -1,0 +1,12 @@
+  program vmc
+    implicit none
+
+    
+
+  end program vmc
+
+ real function wave_function(radius) result(wfval)
+    real, intent(in) :: radius
+    
+
+  end function wave_function

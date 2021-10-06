@@ -1,0 +1,33 @@
+cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
+
+set(CMAKE_VERBOSE_MAKEFILE off)
+
+# Project's name
+
+project(champ LANGUAGES Fortran CXX)
+
+# Cmake modules/macros are in a subdirectory to keep this file cleaner
+
+set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules)
+
+# Set the output folder where your program will be created
+
+set(CMAKE_BINARY_DIR ${CMAKE_SOURCE_DIR}/bin)
+set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
+set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR})
+
+# Input directory
+
+set(INPUT_DIR ${CMAKE_SOURCE_DIR}/src)
+
+# Compiler FLAGS
+
+if(CMAKE_Fortran_COMPILER_ID MATCHES "GNU")
+  list(APPEND Fortran_FLAGS "-O2" "-mcmodel=large")
+  set(CMAKE_Fortran_FORMAT_FREE_FLAG "-ffree-form")
+endif()
+
+# Linking
+
+add_executable(main test_jast.f90)
+target_link_libraries(main ${CMAKE_SOURCE_DIR}/jast.a)

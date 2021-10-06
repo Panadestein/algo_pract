@@ -1,0 +1,32 @@
+;;; irpmode.el --- A major mode for dealing with IRPF90 files
+
+;;; Commentary:
+;; An attempt to support Scemama's IRPF90 in Emacs
+
+;;; Code:
+
+(defconst irp-mode-syntax-table
+  (-let [table (copy-syntax-table f90-mode-syntax-table)]
+    ;; Additional syntax
+    table)
+  "IRPF90 syntax table.")
+
+(defconst irp--kwds-constants
+  '("BEGIN_PROVIDER" "END_PROVIDER" "BEGIN_DOC"
+    "END_DOC" "double precision")
+  "IRPF90 constant keywords.")
+
+(defconst irp--font-lock-kwds-constants
+  (list
+   (rx-to-string
+    `(: (or ,@irp--kwds-constants)))
+   '(0 font-lock-constant-face))
+  "IRPF90 constant keywords.")
+
+(defconst hy-font-lock-kwds
+  (list irp--font-lock-kwds-constants)
+  "All IRPF90 font lock keywords.")
+
+
+(provide 'irp-mode)
+;;; irpmode.el ends here

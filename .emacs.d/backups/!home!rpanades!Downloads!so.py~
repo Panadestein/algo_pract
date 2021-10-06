@@ -1,0 +1,14 @@
+"""SO Answer"""
+import numpy as np
+
+# Input data
+
+N = 3
+THRSH = 5
+ARR = np.array([[3, 2, 6, 7, 0], [4, 1, 6, 4, 0], [7, 10, 6, 9, 8]])
+
+# Get indexes
+
+#  print(arr[np.array(np.where(arr > THRSH))])
+
+print(np.where(ARR > THRSH))

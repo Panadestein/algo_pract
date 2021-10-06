@@ -1,0 +1,15 @@
+Software and printers
+=====================
+
+Here you will find general information about software and printer configuration in our group.
+
+Printer configuration
+---------------------
+
+If you want to print from your laptop while at the office add the following content to your ``/etc/cups/client.conf``:
+
+.. code-block:: bash
+
+   ServerName cpcs04.chm.tu-dresden.de
+
+The printer in the third floor is called ``ps2``.

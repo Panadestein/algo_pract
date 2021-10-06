@@ -1,0 +1,3 @@
+"""Plot spectral function from file"""
+import numpy as np
+

@@ -1,0 +1,421 @@
+#+bind: org-html-htmlize-output-type css
+* Workloads for CHAMP
+
+In the present repo we have included the results of different QMC calculations performed with CHAMP.
+They correspond to different setups of the butadiene molecule. The calculations were ran in our home
+cluster ~CPPGATE~ and in ~JUWELS~. 
+
+The calculations in ~JUWELS~ were ran with the following ~SLURM~ script:
+
+#+begin_src bash
+#!/bin/bash -x
+# run_champ.sh
+#SBATCH --account=prcoe10
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=48
+#SBATCH --output=mpi-out.%j
+#SBATCH --error=mpi-err.%j
+#SBATCH --time=01:00:00
+#SBATCH --partition=batch
+
+srun ../../../software/champ/bin/vmc.mov1 < vmc.inp > vmc.out_core48
+#+end_src
+
+** Optimization of the WF and geometry
+
+Directory: =butadiene_cas1010_optWF+geo=
+
+| Parameter     | Quantity |
+|---------------+----------|
+| Determinants  |    45644 |
+| Jastrow coeff |       13 |
+| CI coeff      |     8308 |
+| Orbital coeff |     2774 |
+|---------------+----------|
+| Total         |    11094 |
+
+Dimensions need to be manually allocated, as it is customary in F77 code: 
+
+  1. =champ/src/include/vmc.h=
+
+  #+begin_src fortran
+      parameter(MELEC=22,MORB=426,MBASIS=426,MDET=45700,MCENT=15,MCTYPE=3,...
+  #+end_src
+
+  2. =champ/src/include/optci.h=
+
+  #+begin_src fortran
+      parameter (MXCITERM=8310,MXCIREDUCED=1,MXCIMATDIM=MXCITERM*(MXCIREDUCED+1)/2)
+  #+end_src
+
+  3. =champ/src/include/optorb.h=
+
+  #+begin_src fortran
+      parameter (MXORBOP=3000,MXREDUCED=1,
+  #+end_src
+
+  4. =champ/src/include/sr.h=
+
+  #+begin_src fortran
+      parameter(MPARM=12000,MOBS=10+6*MPARM,MCONF=2000,MVEC=5)
+  #+end_src
+
+The expected results in different clusters and with different number of CPUs are:
+
+#+begin_src bash
+# One CPU in CPPGATE
+mpirun -np 1 -machinefile nodefile $HOME/champ/bin/vmc.mov1 < vmc.inp > vmc.out_core1 &
+grep 'total E' vmc.out_core1
+# total E =        -26.1659432 +-  0.0550938  0.77914  0.53141  0.53141    2.15
+# total E =        -26.1995215 +-  0.0443882  0.62774  0.63629  0.63629    0.97
+# total E =        -26.1482061 +-  0.0546974  0.84737  0.52473  0.52473    2.61
+grep CENT vmc.out_core1 | tail -10
+# CENT   -1.04465685222292      -0.684999290242164      -4.319304880041522E-002
+# CENT    1.07806867852529       0.732484724982455      -1.411383095073661E-002
+# CENT   -3.50178281172497       0.264651016205004      -3.010149759222856E-002
+# CENT    3.29345249109321      -0.300430992571158       2.029711490176528E-002
+# CENT   -3.71891932331582        2.31466166742306       1.408145547233152E-002
+# CENT    3.68914203758668       -2.29456319362271      -8.161491596972126E-003
+# CENT  -0.978422122178144       -2.74838473444288      -1.604823686443296E-002
+# CENT   0.973663064423709        2.74964889029308       2.046773795898387E-002
+# CENT   -5.14472715392325      -0.820160390499814      -3.537007941577544E-002
+# CENT    5.07785990984282       0.817348991241690       8.365381492719653E-003
+#+end_src
+
+#+begin_src bash
+# Twelve CPUs in CPPGATE
+mpirun -s all -np 12 -machinefile nodefile $HOME/champ/bin/vmc.mov1 < vmc.inp > vmc.out_core12 &
+grep 'total E' vmc.out_core12
+# total E =        -26.2710898 +-  0.0141424  0.69283  0.54540  0.54540    1.61
+# total E =        -26.2521661 +-  0.0181523  0.88928  0.65592  0.65592    1.84
+# total E =        -26.2489656 +-  0.0175522  0.94195  0.78671  0.78671    1.43
+grep CENT vmc.out_core12 | tail -10
+# CENT   -1.17709121292964      -0.745366723694970       1.956643812763591E-002
+# CENT    1.17378605661759       0.726345735005142       1.389916252033887E-003
+# CENT   -3.46845343220032       0.281643261672607       2.539975322469845E-002
+# CENT    3.48533385246041      -0.303396532295072      -1.334234077359114E-002
+# CENT   -3.71413735381371        2.32004862186848       2.875852267696006E-003
+# CENT    3.72213486814004       -2.32179994172733      -7.234393925335190E-003
+# CENT  -0.988279444038511       -2.76518316191606       3.682646639509438E-004
+# CENT   0.969637949218362        2.75947496859428       5.839882661744440E-003
+# CENT   -5.13066656024161      -0.846734186749456      -2.204368216993585E-003
+# CENT    5.14676760538466       0.851728357084424       1.572193845918656E-002
+#+end_src
+
+#+begin_src bash
+# Forty-eight CPUs in CPPGATE
+mpirun -s all -np 48 -machinefile nodefile $HOME/champ/bin/vmc.mov1 < vmc.inp > vmc.out_core48 &
+grep 'total E' vmc.out_core12
+# total E =        -26.2746713 +-  0.0073372  0.71890  0.55751  0.55751    1.66
+# total E =        -26.2559574 +-  0.0078436  0.76851  0.66900  0.66900    1.32
+# total E =        -26.2502337 +-  0.0078878  0.84660  0.71820  0.71820    1.39
+grep CENT vmc.out_core48 | tail -10
+# CENT   -1.16480031035463      -0.730387578474198       2.872293861450845E-003
+# CENT    1.15799015954335       0.720559096318007      -1.116077392366093E-002
+# CENT   -3.47484052155724       0.306281004028262       8.155348596908068E-003
+# CENT    3.47252719728534      -0.292892102111146      -9.463806293196800E-003
+# CENT   -3.71429360047054        2.31840377813979       3.283237408389220E-003
+# CENT    3.71280845796465       -2.31472323974737       1.578483577345738E-003
+# CENT  -0.964718992153208       -2.76065219535423       2.922649284159658E-003
+# CENT   0.969867643494252        2.75716031523321       2.419389256770661E-003
+# CENT   -5.13868979978080      -0.839435921155358      -4.168203985797587E-003
+# CENT    5.14550419406687       0.843322476993058       6.193956790039716E-004
+#+end_src
+
+#+begin_src bash
+# Forty-eight CPUs in JUWELS
+sbatch run_champ.sh
+grep 'total E' vmc.out_core48
+total E =        -26.2634395 +-  0.0050202  0.69561  0.56409  0.56409    1.52
+total E =        -26.2519701 +-  0.0056326  0.78048  0.64054  0.64054    1.48
+total E =        -26.2554962 +-  0.0056006  0.85011  0.66226  0.66226    1.65
+grep CENT vmc.out_core48 | tail -10
+# CENT   -1.17709121292964      -0.745366723694970       1.956643812763591E-002
+# CENT    1.17378605661759       0.726345735005142       1.389916252033887E-003
+# CENT   -3.46845343220032       0.281643261672607       2.539975322469845E-002
+# CENT    3.48533385246041      -0.303396532295072      -1.334234077359114E-002
+# CENT   -3.71413735381371        2.32004862186848       2.875852267696006E-003
+# CENT    3.72213486814004       -2.32179994172733      -7.234393925335190E-003
+# CENT  -0.988279444038511       -2.76518316191606       3.682646639509438E-004
+# CENT   0.969637949218362        2.75947496859428       5.839882661744440E-003
+# CENT   -5.13066656024161      -0.846734186749456      -2.204368216993585E-003
+# CENT    5.14676760538466       0.851728357084424       1.572193845918656E-002
+#+end_src
+
+** Optimization of the WF
+
+Directory: =butadiene_cipsi15k_T_optWF=
+
+| Parameter     | Quantity |
+|---------------+----------|
+| Determinants  |    15469 |
+| Jastrow coeff |       13 |
+| CI coeff      |    15469 |
+| Orbital coeff |     9337 |
+|---------------+----------|
+| Total         |    24818 |
+
+Dimensions need to be manually allocated, as it is customary in F77 code: 
+
+  1. =champ/src/include/vmc.h=
+
+  #+begin_src fortran
+      parameter(MELEC=22,MORB=426,MBASIS=426,MDET=16000,MCENT=15,MCTYPE=3,...
+  #+end_src
+
+  2. =champ/src/include/optci.h=
+
+  #+begin_src fortran
+      parameter (MXCITERM=16000,MXCIREDUCED=1,MXCIMATDIM=MXCITERM*(MXCIREDUCED+1)/2)
+  #+end_src
+
+  3. =champ/src/include/optorb.h=
+
+  #+begin_src fortran
+      parameter (MXORBOP=10000,MXREDUCED=1,
+  #+end_src
+
+  4. =champ/src/include/sr.h=
+
+  #+begin_src fortran
+      parameter(MPARM=26000,MOBS=10+6*MPARM,MCONF=2000,MVEC=5)
+  #+end_src
+
+The expected results in different clusters and with different number of CPUs are:
+
+#+begin_src bash
+# One CPU in CPPGATE
+mpirun -np 1 -machinefile nodefile $HOME/champ/bin/vmc.mov1 < vmc.inp > vmc.out_core1
+grep 'total E' vmc.out_core1
+# total E =        -26.2236263 +-  0.0142058  0.89845  0.75441  0.75441    1.42
+# total E =        -26.2372793 +-  0.0151332  0.95711  0.85614  0.85614    1.25
+# total E =        -26.2431361 +-  0.0143312  0.90639  0.71089  0.71089    1.63
+#+end_src
+
+#+begin_src bash
+# Twelve CPUs in CPPGATE
+mpirun -s all -np 12 -machinefile nodefile $HOME/champ/bin/vmc.mov1 < vmc.inp > vmc.out_core12
+grep 'total E' vmc.out_core12
+# total E =        -26.2304603 +-  0.0045652  1.00018  0.75801  0.75801    1.74
+# total E =        -26.2324774 +-  0.0042509  0.93132  0.71492  0.71492    1.70
+# total E =        -26.2327906 +-  0.0042362  0.92809  0.72244  0.72244    1.65
+#+end_src
+
+#+begin_src bash
+# Forty-eight CPUs in CPPGATE
+mpirun -s all -np 48 -machinefile nodefile $HOME/champ/bin/vmc.mov1 < vmc.inp > vmc.out_core48
+grep 'total E' vmc.out_core48
+# total E =        -26.2302163 +-  0.0022153  0.97070  0.75058  0.75058    1.67
+# total E =        -26.2439121 +-  0.0020241  0.88690  0.70229  0.70229    1.59
+# total E =        -26.2533481 +-  0.0019514  0.85505  0.67065  0.67065    1.63
+#+end_src
+
+#+begin_src bash
+# Forty-eight CPUs in JUWELS
+sbatch run_champ.sh
+grep 'total E' vmc.out_core48
+# total E =        -26.2253702 +-  0.0022088  0.96784  0.75263  0.75263    1.65
+# total E =        -26.2458040 +-  0.0020610  0.90307  0.69556  0.69556    1.69
+# total E =        -26.2526436 +-  0.0019834  0.86907  0.66990  0.66990    1.68
+#+end_src
+
+** Optimization of the WF
+
+Directory: =butadiene_cipsi5k_T_optWF=
+
+| Parameter     | Quantity |
+|---------------+----------|
+| Determinants  |     5000 |
+| Jastrow coeff |       13 |
+| CI coeff      |     5000 |
+| Orbital coeff |     7021 |
+|---------------+----------|
+| Total         |    12033 |
+
+
+Dimensions need to be manually allocated, as it is customary in F77 code: 
+
+  1. =champ/src/include/vmc.h=
+
+  #+begin_src fortran
+      parameter(MELEC=22,MORB=426,MBASIS=426,MDET=5050,MCENT=15,MCTYPE=3,...
+  #+end_src
+
+  2. =champ/src/include/optci.h=
+
+  #+begin_src fortran
+      parameter (MXCITERM=5050,MXCIREDUCED=1,MXCIMATDIM=MXCITERM*(MXCIREDUCED+1)/2)
+  #+end_src
+
+  3. =champ/src/include/optorb.h=
+
+  #+begin_src fortran
+      parameter (MXORBOP=10000,MXREDUCED=1,
+  #+end_src
+
+  4. =champ/src/include/sr.h=
+
+  #+begin_src fortran
+      parameter(MPARM=16000,MOBS=10+6*MPARM,MCONF=2000,MVEC=5)
+  #+end_src
+
+The expected results in different clusters and with different number of CPUs are:
+
+#+begin_src bash
+# One CPU in CPPGATE
+mpirun -np 1 -machinefile nodefile $HOME/champ/bin/vmc.mov1 < vmc.inp > vmc.out_core1
+grep 'total E' vmc.out_core1
+# total E =        -26.2244168 +-  0.0155468  0.98326  0.71026  0.71026    1.92
+# total E =        -26.2350319 +-  0.0176444  1.11593  0.96666  0.96666    1.33
+# total E =        -26.1818119 +-  0.0164537  1.04063  0.77588  0.77588    1.80
+#+end_src
+
+#+begin_src bash
+# Twelve CPUs in CPPGATE
+mpirun -s all -np 12 -machinefile nodefile $HOME/champ/bin/vmc.mov1 < vmc.inp > vmc.out_core12
+grep 'total E' vmc.out_core12
+# total E =        -26.2333837 +-  0.0041056  0.89948  0.71778  0.71778    1.57
+# total E =        -26.2464167 +-  0.0042336  0.92753  0.70850  0.70850    1.71
+# total E =        -26.2520418 +-  0.0040270  0.88226  0.68427  0.68427    1.66
+#+end_src
+
+#+begin_src bash
+# Forty-eight CPUs in CPPGATE
+mpirun -s all -np 48 -machinefile nodefile $HOME/champ/bin/vmc.mov1 < vmc.inp > vmc.out_core48
+grep 'total E' vmc.out_core48
+# total E =        -26.2351090 +-  0.0021138  0.92623  0.71967  0.71967    1.66
+# total E =        -26.2469608 +-  0.0019907  0.87228  0.68057  0.68057    1.64
+# total E =        -26.2533250 +-  0.0019096  0.83674  0.65634  0.65634    1.63
+#+end_src
+
+#+begin_src bash
+# Forty-eight CPUs in JUWELS
+sbatch run_champ.sh
+grep 'total E' vmc.out_core48
+# total E =        -26.2357597 +-  0.0015303  0.94829  0.72187  0.72187    1.73
+# total E =        -26.2485126 +-  0.0014060  0.87128  0.68591  0.68591    1.61
+# total E =        -26.2550339 +-  0.0013321  0.82548  0.65072  0.65072    1.61
+#+end_src
+
+
+** Optimization of the WF
+
+Directory: =butadiene_cipsi500_T_optWF=
+
+| Parameter     | Quantity |
+|---------------+----------|
+| Determinants  |      500 |
+| Jastrow coeff |       13 |
+| CI coeff      |      500 |
+| Orbital coeff |     3404 |
+|---------------+----------|
+| Total         |     3916 |
+
+
+Dimensions need to be manually allocated, as it is customary in F77 code: 
+
+  1. =champ/src/include/vmc.h=
+
+  #+begin_src fortran
+      parameter(MELEC=22,MORB=426,MBASIS=426,MDET=505,MCENT=15,MCTYPE=3,...
+  #+end_src
+
+  2. =champ/src/include/optci.h=
+
+  #+begin_src fortran
+      parameter (MXCITERM=505,MXCIREDUCED=1,MXCIMATDIM=MXCITERM*(MXCIREDUCED+1)/2)
+  #+end_src
+
+  3. =champ/src/include/optorb.h=
+
+  #+begin_src fortran
+      parameter (MXORBOP=10000,MXREDUCED=1,
+  #+end_src
+
+  4. =champ/src/include/sr.h=
+
+  #+begin_src fortran
+      parameter(MPARM=10600,MOBS=10+6*MPARM,MCONF=2000,MVEC=5)
+  #+end_src
+
+The expected results in different clusters and with different number of CPUs are:
+
+#+begin_src bash
+# One CPU in CPPGATE
+mpirun -np 1 -machinefile nodefile $HOME/champ/bin/vmc.mov1 < vmc.inp > vmc.out_core1
+grep 'total E' vmc.out_core1
+# total E =        -26.2249385 +-  0.0146349  0.92559  0.68991  0.68991    1.80
+# total E =        -26.1848034 +-  0.0193458  1.22354  0.89295  0.89295    1.88
+# total E =        -26.1263194 +-  0.0211849  1.33985  0.96942  0.96942    1.91
+#+end_src
+
+#+begin_src bash
+# Twelve CPUs in CPPGATE
+mpirun -s all -np 12 -machinefile nodefile $HOME/champ/bin/vmc.mov1 < vmc.inp > vmc.out_core12
+grep 'total E' vmc.out_core12
+# total E =        -26.2369854 +-  0.0041231  0.90333  0.69614  0.69614    1.68
+# total E =        -26.2420237 +-  0.0039403  0.86327  0.66493  0.66493    1.69
+# total E =        -26.2590957 +-  0.0037109  0.81303  0.66173  0.66173    1.51
+#+end_src
+
+#+begin_src bash
+# Forty-eight CPUs in CPPGATE
+mpirun -s all -np 48 -machinefile nodefile $HOME/champ/bin/vmc.mov1 < vmc.inp > vmc.out_core48
+grep 'total E' vmc.out_core48
+# total E =        -26.2351090 +-  0.0021138  0.92623  0.71967  0.71967    1.66
+# total E =        -26.2469608 +-  0.0019907  0.87228  0.68057  0.68057    1.64
+# total E =        -26.2533250 +-  0.0019096  0.83674  0.65634  0.65634    1.63
+#+end_src
+
+#+begin_src bash
+# Forty-eight CPUs in JUWELS
+sbatch run_champ.sh
+grep 'total E' vmc.out_core48
+# total E =        -26.2367302 +-  0.0014744  0.91368  0.70237  0.70237    1.69
+# total E =        -26.2444271 +-  0.0014359  0.88978  0.69257  0.69257    1.65
+# total E =        -26.2502887 +-  0.0013563  0.84044  0.66263  0.66263    1.61
+#+end_src
+
+
+** Optimization of the WF with a three body Jastrow
+
+Directory: =butadiene_cipsi15k_T_optWF_3body=
+
+| Parameter     | Quantity |
+|---------------+----------|
+| Determinants  |    15469 |
+| Jastrow coeff |       43 |
+| CI coeff      |    15469 |
+| Orbital coeff |     9337 |
+|---------------+----------|
+| Total         |    24848 |
+
+Here the manual allocations are equivalent to those of the second example. The expected results
+ in different clusters and with different number of CPUs are:
+
+#+begin_src bash
+# Twelve CPUs in CPPGATE
+mpirun -s all -np 12 -machinefile nodefile $HOME/champ/bin/vmc.mov1 < vmc.inp > vmc.out_core12
+grep 'total E' vmc.out_core12
+# total E =        -26.2304603 +-  0.0045652  1.00018  0.75801  0.75801    1.74
+# total E =        -26.2386058 +-  0.0042590  0.93309  0.71352  0.71352    1.71
+# total E =        -26.2427094 +-  0.0044002  0.96403  0.71606  0.71606    1.81
+#+end_src
+
+#+begin_src bash
+# Forty-eight CPUs in CPPGATE
+mpirun -s all -np 48 -machinefile nodefile $HOME/champ/bin/vmc.mov1 < vmc.inp > vmc.out_core48
+grep 'total E' vmc.out_core48
+# total E =        -26.2302163 +-  0.0022153  0.97070  0.75058  0.75058    1.67
+# total E =        -26.2432175 +-  0.0020442  0.89570  0.69435  0.69435    1.66
+# total E =        -26.2592173 +-  0.0019349  0.84784  0.65351  0.65351    1.68
+#+end_src
+
+#+begin_src bash
+# Forty-eight CPUs in JUWELS
+sbatch run_champ.sh
+grep 'total E' vmc.out_core48
+#  total E =        -26.2260825 +-  0.0015530  0.96234  0.74776  0.74776    1.66
+#  total E =        -26.2455245 +-  0.0014156  0.87721  0.68629  0.68629    1.63
+#  total E =        -26.2592995 +-  0.0013431  0.83231  0.64520  0.64520    1.66
+#+end_src

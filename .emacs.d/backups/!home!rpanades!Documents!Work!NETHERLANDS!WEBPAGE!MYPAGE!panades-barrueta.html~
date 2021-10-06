@@ -1,0 +1,108 @@
+<div>
+<style> 
+#ccp li {padding: 3px 3px;}
+</style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+
+<table>
+   <tbody>
+     <tr>
+      <td>
+       <img width="250px" alt="Dr. Ramón L. Panadés-Barrueta" src="images/panades-barrueta.jpg"><br><br>
+       <a href="https://github.com/Panadestein"> <i class="fa fa-github fa-2x"></i></a>
+       <a href="https://www.linkedin.com/in/ram%C3%B3n-l-panad%C3%A9s-barrueta-phd-a3b851129/"> <i class="fa fa-linkedin-square fa-2x"></i></a>
+       <a href="https://www.researchgate.net/profile/Ramon_Panades-Barrueta"> <i class="ai ai-researchgate-square ai-2x"></i></a>
+       <a href="https://scholar.google.com/citations?user=IMWuq6wAAAAJ&hl"> <i class="ai ai-google-scholar-square ai-2x"></i></a>
+       <a href="https://stackoverflow.com/users/5661001/panadestein"> <i class="ai ai-stackoverflow-square ai-2x"></i></a>
+       <a href="https://stackoverflow.com/users/5661001/panadestein"> <i class="fa fa-envelope-square ai-2x"></i></a>
+       <a href="cv_rpanades.pdf"> <i class="ai ai-cv-square ai-2x"></i></a>
+      </td>
+
+      <td valign="top" style="padding:0px 15px;">
+       Dr. Ramón L. Panadés-Barrueta<br>
+       University of Twente<br>
+       Faculty of Science and Technology<br>
+       <br/>
+       Carre building, CR 4033<br>
+       P.O. Box 217<br>
+       7500 AE Enschede<br>
+       The Netherlands<br>
+       <br/>
+       Phone: +31-53-489-5444 <br>
+       E-mail: <a href="mailto:r.l.panadesbarrueta@utwente.nl">r.l.panadesbarrueta@utwente.nl</a> <br><br>
+      </td>
+     </tr>
+  </tbody>
+</table>
+
+<br>
+
+I am a postdoctoral researcher within the <a href="https://trex-coe.eu/">TREX Project</a>. In this European Center of Excellence, we aim at developing open-source high-performance quantum chemistry software, which will be tailored to the emerging exascale architectures. State-of-the-art quantum Monte Carlo algorithms will be used for this purpose, since these methods are particularly well suited for massive parallelism. My contributions are centered in the development and application of the Cornell-Holland Ab-initio Materials Package (<a href="https://www.utwente.nl/en/tnw/ccp/research/CHAMP.html">CHAMP</a>) software package.
+<br><br> 
+Formerly, I worked in the development and application of optimization and tensor decomposition algorithms for obtaining Potential Energy Surfaces, that are used in Nuclear Quantum Dynamics calculations with the Multiconfiguration Time-dependent Hartree (MCTDH) method. Below you can find an overview of my CV, the complete version can be found <a href="cv_rpanades.pdf">here</a>.
+
+<br>
+
+<h2>Education</h2>
+
+<table>
+  <tbody>
+    <tr>
+      <td valign="top"> 2017-2020   </td>
+      <td><b>PhD in Physics</b>, University of Lille, France<br>
+	Thesis title: Full quantum simulations of the interaction between atmospheric molecules and model soot articles<br>
+	Supervisor: Prof. Dr. Daniel Peláez-Ruiz
+      </td>
+    </tr>
+    <tr>
+      <td valign="top"> 2016-2017</td>
+      <td><b>MSc in Physics</b>, University of Lille, France<br>
+	Thesis title: Towards a quantum dynamical description of the photodissociation of Cl<sub>2</sub> molecule adsorbed on ice<br>
+	Supervisors: Prof. Dr. Daniel Peláez-Ruiz and Prof. Dr. Maurice Monnerville
+      </td>
+    </tr>
+    <tr>
+      <td valign="top"> 2011-2016</td>
+      <td><b>BSc in Radiochemistry</b>, University of Havana, Higher Institute of Technologies and Applied Sciences (InSTEC), Cuba<br>
+	Thesis title: Mean Potential Phase Space Theory study of the Si(3P) + OH(X2Π) → SiO(X1Σ+) + H(2S) reaction<br>
+	Supervisor: Dr. Alejandro Rivero-Santamaría
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>Publications</h2>
+<ol id="cpp">
+  <li> Panadés-Barrueta, R. L. and Peláez, D. (2020) <b>Low-Rank Sum-of-Products Finite-Basis-Representation (SOP-FBR) of Potential Energy Surfaces</b>,<br> The Journal of Chemical Physics, (minor corrections).
+  </li>
+  <li>
+    Panadés-Barrueta, R. L., Martínez-Núñez, E., & Peláez, D. (2019). <b>Specific Reaction Parameter Multigrid POTFIT (SRP-MGPF): Automatic Generation of Sum-of-Products Form Potential Energy Surfaces for Quantum Dynamical Calculations</b>,<br><a href="https://doi.org/10.3389/fchem.2019.00576">Frontiers in Chemistry, 7, 576</a>. Included in the book <a href="https://www.frontiersin.org/research-topics/9088/application-of-optimization-algorithms-in-chemistry">Application of Optimization Algorithms in Chemistry</a>.
+  </li>
+  <li>
+    Panadés-Barrueta, R. L., Rubayo-Soneira, J., Monnerville, M., Larregaray, P., Dayou, F.,
+    and Rivero-Santamaría, A. (2016).<b>Mean Potential Phase Space Theory study of the Si(3P) + OH(X2Π) → SiO(X1Σ+) + H(2S) reaction</b>,<br> <a href="http://www.revistacubanadefisica.org/index.php/rcf/article/view/65">Revista Cubana de Física, 33(2), 102-117</a>.
+  </li>
+</ol>
+
+<h2>Seminars and conferences</h2>
+
+<table>
+  <tbody>
+    <tr>
+      <td valign="top">August 2020</td>
+      <td><b>On the automatic computation of global (intermolecular) potential energy surfaces for quantum
+	dynamical simulations,</b><br>
+	<a href="http://spig2020.ipb.ac.rs/invited.html">Symposium and Summer School on Physics of Ionized Gases</a>. Šabac, Serbia <i>(Invited speaker).</i>
+      </td>
+    </tr>
+    <tr>
+      <td valign="top">February 2020</td>
+      <td><b>Automatic computation of global (intermolecular) potential energy surfaces for (non) covalently bound systems,</b><br>
+	<a href="https://jctmsifn.sciencesconf.org/program/details">Journée Chimie Théorique et Simulation Moléculaire IdF/Nord</a>. Chimie ParisTech. Paris, France <i>(Contributed talk).</i>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+</div>

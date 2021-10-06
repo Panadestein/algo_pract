@@ -1,0 +1,208 @@
+"""
+The present module performs the optimization of the SOP-FBR
+representation for a 3D PES of the H2O molecule. It has
+dependencies with on the Numpy, Tensorly and Scipy packages
+"""
+import numpy as np
+from numpy.polynomial import chebyshev as cheby
+import scipy.constants as sc
+from scipy.optimize import minimize as mini
+import tensorly as tl
+import nlopt
+import h2o_pot as pot
+
+# System paramters
+
+CHEBDIM = np.array([11, 11, 11])
+CTEN_DIM = np.array([5, 5, 5])
+CCHEB_SLICE = np.cumsum(CTEN_DIM)
+AUCM = sc.physical_constants['hartree-inverse meter relationship'][0] * 1e-2
+
+# SOP-FBR
+
+
+def vchpot(chebs, core):
+    """Computes the SOP potential for the reference geometries using the
+    tensor n-mode approach"""
+
+    v_matrices = []
+    idx_cheb = 0
+    for kdof, m_kp in enumerate(CTEN_DIM):
+        v_kp = np.zeros((len(G_AB[kdof]), m_kp))
+        for j_kp in np.arange(m_kp):
+            for i_kp, val in enumerate(G_AB[kdof]):
+                v_kp[i_kp, j_kp] = cheby.chebval(
+                    val, chebs[idx_cheb:idx_cheb + CHEBDIM[kdof]])
+            idx_cheb += CHEBDIM[kdof]
+        v_matrices.append(v_kp)
+
+    core = core.reshape(CTEN_DIM)
+    prod = tl.tucker_tensor.tucker_to_tensor((core, v_matrices))
+
+    return prod
+
+
+# RMS
+
+def rho(carray):
+    """Objective function of the macroiterations
+    (only depends on the Chebyshev coefficients)
+    """
+    c_cheb = carray[:NCHEB]
+    c_comb = carray[NCHEB:]
+
+    e_vch = vchpot(c_cheb, c_comb)
+    rms = np.sqrt(((e_vch - E_AB) ** 2).mean())
+    print(f"RMS FULL {rms}")
+
+    #  with open("rms_core", "a") as file_target:
+    #      file_target.write(str(rms) + "\n")
+
+    return rms
+
+
+def rho_core(c_comb, _):
+    """Objective function of the macroiterations
+    (only depends on the Chebyshev coefficients)
+    """
+    c_cheb = CARRAY[:NCHEB]
+
+    e_vch = vchpot(c_cheb, c_comb)
+    rms = np.sqrt(((e_vch - E_AB) ** 2).mean())
+    print(f"RMS CORE {rms}")
+
+    #  with open("rms_core", "a") as file_target:
+    #      file_target.write(str(rms) + "\n")
+
+    return rms
+
+
+def rho_cheb(c_cheb, _):
+    """Objective function of the macroiterations
+    (only depends on the Chebyshev coefficients)
+    """
+    c_comb = CARRAY[NCHEB:]
+
+    e_vch = vchpot(c_cheb, c_comb)
+    rms = np.sqrt(((e_vch - E_AB) ** 2).mean())
+    print(f"RMS CHEB {rms}")
+
+    #  with open("rms_cheb", "a") as file_target:
+    #      file_target.write(str(rms) + "\n")
+    return rms
+
+
+# Reference data and parameter guess input (X -> contracted DOF)
+
+R1_0 = 1.8102116343453211744
+R2_0 = 1.8102116343453211744
+TH_0 = 1.8238154598097864323
+
+R1 = np.linspace(1.45, 2.45, 15)
+R2 = np.linspace(1.45, 2.45, 15)
+TH = np.linspace(1.14, np.pi, 15)
+
+G_AB = np.array([R1, R2, TH])
+R1_M, R2_M, TH_M = np.meshgrid(R1, R2, TH, indexing='ij')
+
+E_AB = np.vectorize(pot.surfh2o)(R1_M, R2_M, TH_M) * AUCM
+np.savetxt("e_ref", E_AB.flatten())
+
+# Total number of Chebyshev polinomial's coefficients
+
+NCHEB = np.sum(CTEN_DIM * CHEBDIM)
+
+# Total parameter array and dimension (cchev||ctens)
+
+CARRAY = np.loadtxt('./params_srp_b')
+BLOW = np.zeros(CARRAY.shape[0])
+BUPP = np.zeros(CARRAY.shape[0])
+
+for idx, pval in enumerate(CARRAY):
+    if idx <= NCHEB:
+        PDEV = 1
+        if pval >= 0:
+            BUPP[idx] = pval * (1.0 + PDEV)
+            BLOW[idx] = pval * (1.0 - PDEV)
+        else:
+            BUPP[idx] = pval * (1.0 - PDEV)
+            BLOW[idx] = pval * (1.0 + PDEV)
+    else:
+        PDEV = 1000
+        if pval >= 0:
+            BUPP[idx] = pval * (1.0 + PDEV)
+            BLOW[idx] = pval * (1.0 - PDEV)
+        else:
+            BUPP[idx] = pval * (1.0 - PDEV)
+            BLOW[idx] = pval * (1.0 + PDEV)
+
+# Fitting process
+
+params_opt = mini(rho, CARRAY, method='Powell', options={'maxiter': 50000})
+
+#  OPT_OBJ = nlopt.opt(nlopt.G_MLSL_LDS, CARRAY.shape[0])
+#  OPT_OBJ.set_local_optimizer(nlopt.opt(nlopt.LN_BOBYQA, CARRAY.shape[0]))
+#  OPT_OBJ.set_lower_bounds(BLOW)
+#  OPT_OBJ.set_upper_bounds(BUPP)
+#  OPT_OBJ.set_min_objective(rho)
+#  OPT_OBJ.set_maxeval(MAXITER)
+#  CARRAY = OPT_OBJ.optimize(CARRAY)
+#  RMSEFIN = OPT_OBJ.last_optimum_value()
+#  np.savetxt('opt_params', CARRAY)
+
+#  print(RMSEFIN)
+
+# Fitting process decoupled
+
+#  TOL = 1e-9
+#  RESER = np.inf
+#  RESER_MIN = np.inf
+#  MAXITER = 5000
+#  ITERS = 0
+#  while RESER >= TOL:
+#      if ITERS == 5:
+#          break
+
+    # Optimize Core tensor
+
+    #  params_opt_cten = mini(rho_core, CARRAY[NCHEB:],
+    #                         method='Powell', options={'maxiter': 50000})
+    #  CARRAY[NCHEB:] = params_opt_cten.x
+
+    #  OPT_OBJ_CORE = nlopt.opt(nlopt.G_MLSL_LDS, CARRAY[NCHEB:].shape[0])
+    #  OPT_OBJ_CORE.set_local_optimizer(nlopt.opt(nlopt.LN_BOBYQA,
+    #                                             CARRAY[NCHEB:].shape[0]))
+    #  OPT_OBJ_CORE.set_lower_bounds(BLOW[NCHEB:])
+    #  OPT_OBJ_CORE.set_upper_bounds(BUPP[NCHEB:])
+    #  OPT_OBJ_CORE.set_min_objective(rho_core)
+    #  OPT_OBJ_CORE.set_maxeval(MAXITER)
+    #  CARRAY[NCHEB:] = OPT_OBJ_CORE.optimize(CARRAY[NCHEB:])
+
+    # Optimize Chebyshev coefficients
+
+    #  params_opt_cheb = mini(rho_cheb, CARRAY[:NCHEB],
+    #                         method='Powell', options={'maxfev': 10000})
+    #  CARRAY[:NCHEB] = params_opt_cheb.x
+    #  RESER = params_opt_cheb.fun
+
+    #  OPT_OBJ = nlopt.opt(nlopt.G_MLSL_LDS, CARRAY[:NCHEB].shape[0])
+    #  OPT_OBJ.set_local_optimizer(nlopt.opt(nlopt.LN_BOBYQA,
+    #                                        CARRAY[:NCHEB].shape[0]))
+    #  OPT_OBJ.set_lower_bounds(BLOW[:NCHEB])
+    #  OPT_OBJ.set_upper_bounds(BUPP[:NCHEB])
+    #  OPT_OBJ.set_min_objective(rho_cheb)
+    #  OPT_OBJ.set_maxeval(MAXITER)
+    #  CARRAY[:NCHEB] = OPT_OBJ.optimize(CARRAY[:NCHEB])
+
+    #  RESER = OPT_OBJ.last_optimum_value()
+
+    # Check evolution of RMSE
+
+    #  if RESER < RESER_MIN:
+    #      RESER_MIN = RESER
+    #      np.savetxt('opt_params', CARRAY)
+    #      with open('out_reser', 'a') as outr:
+    #          outr.write(str(ITERS) + " RMS =  " + str(RESER) + "\n")
+
+    #  np.savetxt('opt_params', CARRAY)
+    #  ITERS += 1

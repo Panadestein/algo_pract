@@ -1,0 +1,6 @@
+  program loadjast
+    implicit none
+
+    call jastrow_full()
+
+  end program loadjast

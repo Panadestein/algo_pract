@@ -1,0 +1,40 @@
+"""Gets variance and energies for two states
+   by parsing QP2 output"""
+import re
+import numpy as np
+import matplotlib.pyplot as plt
+
+INFIL = ["./fci_1000_01_1_1.out", "fci_30000_01_6_4.out",
+         "fci_30000_01_4_6.out"]
+PAT_VAR = "Variance        ="
+PAT_PT2 = "PT2             ="
+DETS = "Summary at N_det ="
+
+for fil in INFIL:
+    var = []
+    pt2 = []
+    dets = []
+    with open(fil, "r") as infile:
+        for line in infile:
+            if re.search(PAT_VAR, line):
+                var.append(float(line.split()[2]))
+            elif re.search(PAT_PT2, line):
+                pt2.append(float(line.split()[2]))
+            elif re.search(DETS, line):
+                dets.append(float(line.split()[4]))
+
+    var = np.array(var[1:])
+    pt2 = np.array(pt2[1:])
+    dets = np.array(dets[1:])
+
+    delta_var = list(map(lambda x: x[1] - x[0], var.reshape(-1, 2)))
+    delta_pt2 = list(map(lambda x: x[1] - x[0], pt2.reshape(-1, 2)))
+
+    print(fil)
+    print("dVar")
+    print(delta_var)
+    print("dPT2")
+    print(delta_pt2)
+    plt.plot(dets, delta_var)
+    plt.title(fil)
+    plt.show()

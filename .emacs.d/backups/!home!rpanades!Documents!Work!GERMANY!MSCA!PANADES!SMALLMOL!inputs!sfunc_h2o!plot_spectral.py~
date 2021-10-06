@@ -1,0 +1,40 @@
+"""Plot spectral function from file"""
+import numpy as np
+import plotly.io as pio
+import plotly.graph_objects as go
+
+# Load file
+
+A_OMEGA = np.loadtxt("./PBEh045/spectrum_cd_state_1.dat")
+
+# Plot spectral function
+
+pio.templates.default = "plotly_white"
+
+TR1 = go.Scatter(x=A_OMEGA[:, 0], y=A_OMEGA[:, 1],
+                 mode='lines', showlegend=False)
+TR2 = go.Scatter(x=A_OMEGA[:, 0], y=A_OMEGA[:, 1],
+                 mode='lines', showlegend=False,
+                 xaxis='x2', yaxis='y2', line_color="#deaf33")
+
+DATA = [TR1, TR2]
+
+LAYOUT = go.Layout(
+    #  xaxis_title=r"$\omega \, \text{[eV]}$",
+    #  yaxis_title=r"$A(\omega) \, \text{[a.u.]}$",
+    xaxis=dict(mirror=True, showline=True, ticks='inside',
+               linecolor="#000000"),
+    yaxis=dict(mirror=True, showline=True, ticks='inside',
+               linecolor="#000000"),
+    xaxis2=dict(domain=[0.2, 0.7], anchor='y2',
+                mirror=True, showline=True,
+                ticks='inside', range=[-610, -550], linecolor="#000000"),
+    yaxis2=dict(domain=[0.5, 0.9], anchor='x2',
+                mirror=True, showline=True,
+                ticks='inside', range=[-0.5, 8], linecolor="#000000")
+)
+
+FIG = go.Figure(data=DATA, layout=LAYOUT)
+
+FIG.write_image("xps_h2o.svg")
+#  FIG.show()

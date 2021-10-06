@@ -1,0 +1,69 @@
+"""Parses Quantum Package output to gather variance
+   and PT2 values for each state"""
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Variables definition
+
+NSTATES = 2
+STRVAR = "Variance        ="
+PT2STR = "PT2             ="
+DETSTR = "Summary at N_det ="
+FIL = "fci_cmax_0406_10000.out"
+
+# File parsing
+
+var = []
+pt2 = []
+det = []
+with open(FIL, 'r') as infil:
+    for line in infil:
+        if STRVAR in line:
+            var.append(float(line.split()[2]))
+        elif PT2STR in line:
+            pt2.append(float(line.split()[2]))
+        elif DETSTR in line:
+            det.append(float(line.split()[4]))
+
+vara = np.array(var)[1:]
+pt2a = np.array(pt2)[1:]
+deta = np.array(det)[1:]
+
+vara = vara.reshape(-1, NSTATES)
+pt2a = pt2a.reshape(-1, NSTATES)
+
+dvar = []
+dpt2 = []
+for idx in range(NSTATES - 1):
+    dvar.append(vara[:, idx + 1] - vara[:, 0])
+    dpt2.append(pt2a[:, idx + 1] - pt2a[:, 0])
+
+# Save results
+
+np.savetxt('dets', deta)
+np.savetxt('dvar_cmax_0406_10000', dvar[0])
+np.savetxt('dpt2_cmax_0406_10000', dpt2[0])
+
+raise SystemExit
+
+# Plot variance gap
+
+for dval in dvar:
+    plt.plot(deta, dval)
+
+plt.xlabel(r'$N_{det}$')
+plt.ylabel(r'$\Delta \sigma^2$')
+plt.legend([f"State {idx + 1}" for idx in range(NSTATES - 1)])
+plt.show()
+
+plt.clf()
+
+# Plot PT2 gap
+
+for dval in dpt2:
+    plt.plot(deta, dval)
+
+plt.xlabel(r'$N_{det}$')
+plt.ylabel(r'$\Delta PT2$')
+plt.legend([f"State {idx + 1}" for idx in range(NSTATES - 1)])
+plt.show()

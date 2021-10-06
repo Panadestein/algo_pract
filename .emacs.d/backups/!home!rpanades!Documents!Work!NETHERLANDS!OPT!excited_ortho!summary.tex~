@@ -1,0 +1,114 @@
+\documentclass[journal=jctcce,manuscript=article]{achemso}
+
+%\usepackage{chemformula} 
+\usepackage[T1]{fontenc} 
+\usepackage{times}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{comment}
+\usepackage{color}
+\usepackage{adjustbox}
+\usepackage{multirow}
+\usepackage{url}
+\usepackage{braket}
+\usepackage{textcomp}
+%\usepackage{footnote}
+%\makesavenoteenv{tabular}
+%\makesavenoteenv{table}
+
+
+\newcommand{\ham}{\hat{\mathcal{H}}}
+\newcommand{\angs}{\AA}
+\newcommand{\quotes}[1]{``#1''}
+\newcommand{\sm}[1]{\textcolor{blue}{#1}}
+\renewcommand{\thepage}{S\arabic{page}}  
+\renewcommand{\thesection}{S\arabic{section}}
+%\renewcommand{\@makefnmark}{\makebox{\normalfont[\@thefnmark]}}   
+\renewcommand{\thetable}{S\arabic{table}}   
+\renewcommand{\thefigure}{S\arabic{figure}}
+
+\renewcommand{\thefootnote}{\textit{\alph{footnote}}}
+
+\title{Summary double excitations: state-specific versus state-average opt}
+
+\begin{document}
+
+\section{HNO}
+\label{sec:hno}
+
+\begin{table*}[!htb]
+\caption{VMC and DMC total energies (a.u.) and excitation energies (eV) of HNO.}
+\resizebox{\columnwidth}{!}{
+\begin{tabular}{lccccccccccc}
+\hline
+WF &&  No.\ det & No.\ parm & \multicolumn{2}{c}{E$_{\rm VMC}$} & $\Delta$E$_{\rm VMC}$ & $\tau$ & \multicolumn{2}{c}{E$_{\rm DMC}$} & $\Delta$E$_{\rm DMC}$ \\ 
+\cline{5-6}
+\cline{9-10}
+& & & & GS & ES & & & GS &  ES \\
+\hline
+\multicolumn{10}{l}{State-average} \\
+CAS(12,9)/  && 3528 & 1599 & -26.4717(5) & -26.3103(5) & 4.39(2) & 0.0500 & -26.5113(1) & -26.3509(1) & 4.364(4) \\
+&& & & & & & 0.0250 & -26.5096(1) & -26.3495(1) & 4.358(4) \\
+&& & & & & & 0.0125 & -26.5090(1) & -26.3488(1) & 4.359(5) \\
+\multicolumn{10}{l}{State-specific} \\
+CAS(2,2)/   && 2 & 231 & -26.4462(3) & -26.2764(3) & 4.61(1) & 0.0200&-26.4990(2) & -26.3321(2) & 4.540(6)\\
+CAS(12,9)/   && 3528 & 1599 & -26.4762(1) & -26.3134(1) & 4.431(5) & 0.0200 & -26.5114(1) & -26.3510(1) & 4.363(4)\\
+%\multicolumn{9}{l}{exFCI/AVQZ} &&  4.32(0) \\
+%\multicolumn{9}{l}{CCSDT/AVQZ} &&  4.80\footnote{Reference \cite{loos2019}} \\
+%\multicolumn{9}{l}{CASPT2/AVQZ} &&  4.34\footnote{Reference \cite{loos2019}} \\
+\multicolumn{9}{l}{CC3/aug-cc-pVTZ} && 5.247~\cite{loos2021} \\
+	\multicolumn{9}{l}{CCSDT/aug-cc-pVDZ} && 4.756\footnote{Reference~\cite{loos2021}} \\
+\multicolumn{9}{l}{CC4/aug-cc-pVDZ} && 4.454 \\
+\multicolumn{9}{l}{CCSDTQ/aug-cc-pVDZ} && 4.424 \\
+\multicolumn{9}{l}{FCI/aug-cc-pVDZ} &&  4.397(1) \\
+
+\hline
+\end{tabular}}
+\label{tab:hno}
+\end{table*}
+
+
+\section{Glyoxal}
+\label{sec:glyoxal}
+
+\begin{table*}[!htb]
+\caption{VMC and DMC total energies (a.u.) and excitation energies (eV) of Glyoxal.}
+\resizebox{\columnwidth}{!}{
+\begin{tabular}{lccccccccccc}
+\hline
+WF &&  No.\ det & No.\ parm & \multicolumn{2}{c}{E$_{\rm VMC}$} & $\Delta$E$_{\rm VMC}$ & $\tau$ & \multicolumn{2}{c}{E$_{\rm DMC}$} & $\Delta$E$_{\rm DMC}$ \\
+\cline{5-6}
+\cline{9-10}
+& & & & GS & ES & & & GS &  ES \\
+\hline
+\multicolumn{10}{l}{State-average} \\
+SA-CAS(8,6)  &&   61 &  441 & -44.5545(8) & -44.3441(8) & 5.72(3) & 0.0500 & -44.6410(2) & -44.4314(2) & 5.704(6) \\
+SA-CAS(12,8) &&  208 &  507 & -44.5559(8) & -44.3492(8) & 5.63(3) & 0.0500 & -44.6422(2) & -44.4341(2) & 5.663(6) \\
+%&& & & & & & 0.0250 & -26.5096(1) &  & \\
+%&& & & & & & 0.0125 & -26.5090(1) & -26.3488(1) & 4.359(5) \\
+\multicolumn{10}{l}{State-specific} \\
+%CAS(12,9)/   && 3528 & 1599 & & & & & & & \\
+\multicolumn{9}{l}{exFCI/AVDZ} &&  5.48(0) \\
+\multicolumn{9}{l}{CC3 (\%T$_1$)/AVQZ} &&  6.76 (1\%) \\%\footnote{Reference \cite{loos2019}} \\
+\multicolumn{9}{l}{CASPT2/AVQZ} &&  5.43 \\%\footnote{Reference \cite{loos2019}} \\
+%\multicolumn{9}{l}{CC3/aug-cc-pVTZ} && 5.247~\cite{loos2021} \\
+%\multicolumn{9}{l}{CCSDT/aug-cc-pVDZ} && 4.756\footnote{Reference~\cite{loos2021}} \\
+%\multicolumn{9}{l}{CC4/aug-cc-pVDZ} && 4.454 \\
+%\multicolumn{9}{l}{CCSDTQ/aug-cc-pVDZ} && 4.424 \\
+%\multicolumn{9}{l}{FCI/aug-cc-pVDZ} &&  4.397(1) \\
+
+\hline
+\end{tabular}}
+\label{tab:glyoxal}
+\end{table*}
+
+
+
+
+
+
+\bibliographystyle{unsrt}
+\bibliography{summary.bib}
+
+\end{document}

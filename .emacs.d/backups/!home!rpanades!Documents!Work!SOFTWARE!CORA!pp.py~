@@ -1,0 +1,44 @@
+"""Test parser"""
+import glob
+import pandas as pd
+
+CODES = ['tvI!', 'tvI.']
+
+#  my_excels = []
+#  for fil in glob.glob("./*.xlsx"):
+#      my_excels.append(pd.read_excel(fil, header=2, usecols=(0, 1, 2, 3, 4)))
+#  for lst in my_excels:
+#      lstpr = [x if not isinstance(x, str) else x.replace(' ', '')
+#               for x in lst["Codes"]]
+#      for i, j in enumerate(lstpr):
+#          if i == len(lstpr) - 1:
+#              break
+#          if j == 'tvI!' and lstpr[i + 1] == 'tvI.':
+#              print(i, j)
+#              print(i + 1, lstpr[i + 1])
+#              print(lst.iloc[[i + 1]])
+
+
+def search_excels(codes):
+    """Looks for consecutive occurrences"""
+    print(codes)
+    my_excels = []
+    for fil in glob.glob("./*.xlsx"):
+        my_excels.append(pd.read_excel(fil, header=2, usecols=(0, 1, 2, 3, 4)))
+        print(fil)
+    for lst in my_excels:  # Loop through all files
+        # Test if there are spaces (pruned list)
+        lstpr = [x if not isinstance(x, str) else x.replace(
+            ' ', '') for x in list(lst["Codes"])]
+        # Look for strings in pruned lists
+        for i, j in enumerate(lstpr):
+            print(lstpr[i:i + len(codes) + 1])
+            if i == len(lstpr) - len(codes) + 1:  # To check
+                break
+            if lstpr[i:i + len(codes)] == codes:
+                print(i, j)
+                print(i + 1, lstpr[i + 1])
+                print(lst.iloc[[i + 1]])
+
+
+search_excels(CODES)

@@ -1,0 +1,13 @@
+"""Find peaks in spectral function with Scipy"""
+import numpy as np
+from scipy.signal import find_peaks
+
+# Load data
+
+SGL = np.loadtxt("./PBEh045/spectrum_cd_state_1.dat")
+a -1
+
+# Return peaks
+
+PKS = find_peaks(SGL[:, 1])
+print(SGL[:, 0][PKS[0]])

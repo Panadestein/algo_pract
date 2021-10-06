@@ -1,0 +1,6 @@
+#!/bin/bash
+
+SUFX=${"$1"%.out}
+
+paste -d " " <(grep "Summary " "$1" | awk '{print $5}') \
+      <(grep -w "# E " "$1" | awk '{print $3, $4, $5}') > energs_"$SUFX"

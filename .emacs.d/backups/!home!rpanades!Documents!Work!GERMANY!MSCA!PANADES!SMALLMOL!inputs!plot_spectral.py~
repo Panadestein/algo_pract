@@ -1,0 +1,6 @@
+"""Plot spectral function from file"""
+import numpy as np
+
+# Load file
+
+A_OMEGA = np.loadtxt("./sfunc_h2o/spectrum_cd_state_1.dat")

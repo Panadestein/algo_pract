@@ -1,0 +1,313 @@
+\documentclass[journal=jctcce,manuscript=article]{achemso}
+
+%\usepackage{chemformula} 
+\usepackage[T1]{fontenc} 
+\usepackage{times}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{comment}
+\usepackage{color}
+\usepackage{adjustbox}
+\usepackage{multirow}
+\usepackage{url}
+\usepackage{braket}
+\usepackage{textcomp}
+\usepackage{threeparttable}
+%\usepackage{footnote}
+%\makesavenoteenv{tabular}
+%\makesavenoteenv{table}
+
+
+\newcommand{\ham}{\hat{\mathcal{H}}}
+\newcommand{\angs}{\AA}
+\newcommand{\quotes}[1]{``#1''}
+\newcommand{\sm}[1]{\textcolor{blue}{#1}}
+\renewcommand{\thepage}{S\arabic{page}}  
+\renewcommand{\thesection}{S\arabic{section}}
+%\renewcommand{\@makefnmark}{\makebox{\normalfont[\@thefnmark]}}   
+\renewcommand{\thetable}{S\arabic{table}}   
+\renewcommand{\thefigure}{S\arabic{figure}}
+
+\renewcommand{\thefootnote}{\textit{\alph{footnote}}}
+
+\title{Summary double excitations: state-specific versus state-average opt}
+
+\begin{document}
+
+\section{HNO}
+\label{sec:hno}
+
+
+\begin{table*}[!htb]
+\caption{Summary of SA-CASSCF Calculations on HNO}
+\resizebox{\columnwidth}{!}{
+\begin{threeparttable}
+\begin{tabular}{lccrccccrrc}
+\hline
+CAS/Basis & Manual MO Swaps & MO Types &  No.\ CSFs & \multicolumn{3}{c}{E$_{\rm MCSCF}$} & & \multicolumn{3}{c}{Largest Relevant CSF of ES} \\
+\cline{5-7}
+\cline{9-11}
+        & & & & GS & ES & $\Delta E$ & & No.\ & Coeff. & Occ. of AS \\
+\hline
+\multicolumn{10}{l}{State-average} \\
+CAS(12,9)/BFD-VDZ  & - & \multicolumn{1}{r}{($\sigma_{\rm NO}$,$\sigma_{\rm NH}$,n$_1$,$\pi_{\rm NO}$,n$_2$,n$_3$)-($\pi^*_{\rm NO}$,$\sigma^*_{\rm NH}$,$\sigma^*_{\rm NO}$)} & 1316 & -26.12778 & -25.95578 & 4.6804 & & 42 & 0.943 & \multicolumn{1}{r}{222220\;|\;200} \\
+\hline
+SA-CASSCF(12,9)/AVDZ & & \multicolumn{1}{c}{all valence orbitals} & & & & \multicolumn{5}{l}{4.70\tnote{a}} \\
+SA-CASSCF(12,9)/AVQZ & &  \multicolumn{1}{c}{all valence orbitals} & & & & \multicolumn{5}{l}{4.67\tnote{a}} \\
+\hline
+\end{tabular}
+\begin{tablenotes}
+\item[a] Reference~\cite{loos2019}
+\end{tablenotes}
+\end{threeparttable}}
+\label{tab:HNO_cas}
+\end{table*}
+
+
+\begin{table*}[!htb]
+\caption{VMC and DMC total energies (a.u.) and excitation energies (eV) of HNO.}
+\resizebox{\columnwidth}{!}{
+\begin{threeparttable}
+\begin{tabular}{lcrrccccccll}
+\hline
+WF &&  No.\ det & No.\ parm & \multicolumn{2}{c}{E$_{\rm VMC}$} & $\Delta$E$_{\rm VMC}$ & $\tau$ & \multicolumn{2}{c}{E$_{\rm DMC}$} & $\Delta$E$_{\rm DMC}$ \\ 
+\cline{5-6}
+\cline{9-10}
+& & & & GS & ES & & & GS &  ES \\
+\hline
+\multicolumn{10}{l}{State-average} \\
+\cline{1-1}
+CAS(12,9)/BFD-VDZ  && 3528 & 1599 & -26.4721(1) & -26.3099(1) & 4.413(4) & 0.0500 & -26.5113(1) & -26.3509(1) & 4.364(4) \\
+&& & & & & & 0.0250 & -26.5096(1) & -26.3495(1) & 4.358(4) \\
+&& & & & & & 0.0125 & -26.5090(1) & -26.3488(1) & 4.359(5) \\
+\multicolumn{10}{l}{State-specific} \\
+\cline{1-1}
+CAS(2,2)/BFD-VDZ   && 2 & 231 & -26.4462(3) & -26.2764(3) & 4.61(1) & 0.0200&-26.4990(2) & -26.3321(2) & 4.540(6)\\
+CAS(12,9)/BFD-VDZ  && 3528 & 1599 & -26.4762(1) & -26.3134(1) & 4.431(5) & 0.0200 & -26.5114(1) & -26.3510(1) & 4.363(4)\\
+CIPSI-300/BFD-VDZ  && 301 & 564 & -26.4718(1) & -26.3092(1) & 4.424(7) & 0.0200 & -26.5094(1) &  & \\
+CIPSI-1500/BFD-VDZ  && 1521 & 925 & -26.4750(1) & -26.3129(1) & 4.410(6) & 0.0200 & -26.5113(1) & -26.3505(1) & 4.377(2)\\
+CIPSI-3000/BFD-VDZ  && 3060 & 1442 & -26.4805(1) & -26.3205(1) & 4.353(6) & 0.0200 & -26.5141(1) & -26.3544(1) & 4.344(2)\\
+\hline
+\multicolumn{1}{l}{CC3~(\%T$_1$)/aug-cc-pVTZ} && \multicolumn{9}{l}{5.247~(0\%)~\tnote{a}} \\
+\multicolumn{1}{l}{CCSDT/aug-cc-pVDZ} && \multicolumn{1}{l}{4.756\tnote{a}} \\
+\multicolumn{1}{l}{CC4/aug-cc-pVDZ} && \multicolumn{1}{l}{4.454\tnote{a}} \\
+\multicolumn{1}{l}{CCSDTQ/aug-cc-pVDZ} && \multicolumn{1}{l}{4.424\tnote{a}} \\
+\multicolumn{1}{l}{FCI/aug-cc-pVDZ} &&  \multicolumn{1}{l}{4.397(1)\tnote{a}} \\
+\multicolumn{1}{l}{exFCI/AVDZ} &&  \multicolumn{1}{l}{4.40(1)\tnote{b}} \\
+\multicolumn{1}{l}{exFCI/AVQZ} &&  \multicolumn{1}{l}{4.32(0)\tnote{b}} \\
+\multicolumn{1}{l}{CASPT2(12,9)/AVDZ} &&  \multicolumn{1}{l}{4.46\tnote{b}} \\
+\multicolumn{1}{l}{CASPT2(12,9)/AVQZ} &&  \multicolumn{1}{l}{4.34\tnote{b}} \\
+\multicolumn{1}{l}{PC-NEVPT2(12,9)/AVDZ} &&  \multicolumn{1}{l}{4.46\tnote{b}} \\
+\multicolumn{1}{l}{PC-NEVPT2(12,9)/AVQZ} &&  \multicolumn{1}{l}{4.35\tnote{b}} \\
+\hline
+\end{tabular}
+\begin{tablenotes}
+\item[a] Reference~\cite{loos2021} \item[b] Reference~\cite{loos2019}
+\end{tablenotes}
+\end{threeparttable}}
+\label{tab:hno}
+\end{table*}
+
+\clearpage
+
+\begin{figure}[htb]
+\begin{center}
+\includegraphics[scale=0.5]{HNO-cas129-optimized-orbitals.pdf}
+\caption{Optimized NHO orbitals from the SA-CASSCF(12,9)/BFD-VDZ calculation.}
+\end{center}
+\end{figure}
+
+
+\clearpage
+
+\section{Glyoxal}
+\label{sec:glyoxal}
+
+
+\begin{table*}[!htb]
+\caption{Summary of SA-CASSCF Calculations on Glyoxal}
+\resizebox{\columnwidth}{!}{
+\begin{threeparttable}
+\begin{tabular}{lccrccccrrc}
+\hline
+CAS/Basis & Manual MO Swaps & MO Types &  No.\ CSFs & \multicolumn{3}{c}{E$_{\rm MCSCF}$} & & \multicolumn{3}{c}{Largest Relevant CSF of ES}\tnote{a} \\
+\cline{5-7}
+\cline{9-11}
+        & & & & GS & ES & $\Delta E$ & & No.\ & Coeff. & Occ. of AS \\
+\hline
+\multicolumn{10}{l}{State-average} \\
+CAS(4,4)/BFD-VDZ   & - & \multicolumn{1}{r}{(n,n)-($\pi^*$,$\pi^*$)} & 8 & -43.73596 & -43.56879 & 4.5490 & & 7 & 0.831 & \multicolumn{1}{r}{20\;|\;20} \\
+CAS(8,6)/BFD-VDZ   & - & \multicolumn{1}{r}{($\pi$,$\pi$,n,n)-($\pi^*$,$\pi^*$)} & 33 & -43.81045 & -43.59755 & 5.7933 & & 23 & -0.165 & \multicolumn{1}{r}{2120\;|\;21} \\
+CAS(12,8)/BFD-VDZ  & - & \multicolumn{1}{r}{(n,n,$\pi$,$\pi$,n,n)-($\pi^*$,$\pi^*$)} & 96 & -43.81216 & -43.60964 & 5.5109 & & 42 & 0.096 & \multicolumn{1}{r}{122212\;|\;20} \\
+CAS(12,8)/BFD-VDZ  & 5$\rightarrow$7\tnote{b} & \multicolumn{1}{r}{(n,n,$\pi$,$\pi$,n,n)-($\pi^*$,$\pi^*$)} & 96 & -43.81216 & -43.60964 & 5.5109 & & 45 & 0.124\tnote{c} & \multicolumn{1}{r}{212221\;|\;20} \\
+CAS(12,8)/BFD-VDZ  & 4,5$\rightarrow$6,7\tnote{b} & \multicolumn{1}{r}{(n,n,$\pi$,$\pi$,n,n)-($\pi^*$,$\pi^*$)} & 96 & -43.81216 & -43.60964 & 5.5109 & & 45 & 0.155 & \multicolumn{1}{r}{122221\;|\;20} \\
+\hline
+SA-CASSCF(8,6)/AVDZ & & \multicolumn{1}{c}{$\pi_{\rm CC}$,$\pi_{\rm CO}$,n$_{\rm O1}$,n$_{\rm O2}$,$\pi^*_{\rm CC}$,$\pi^*_{\rm CO}$} & & & & \multicolumn{5}{l}{5.80\tnote{d}} \\
+SA-CASSCF(8,6)/AVQZ & &  \multicolumn{1}{c}{$\pi_{\rm CC}$,$\pi_{\rm CO}$,n$_{\rm O1}$,n$_{\rm O2}$,$\pi^*_{\rm CC}$,$\pi^*_{\rm CO}$} & & & & \multicolumn{5}{l}{5.77\tnote{d}} \\
+SA-CASSCF(14,12)/AVDZ & & \multicolumn{1}{c}{$\sigma_{\rm CC}$,$\sigma_{\rm CO}$,$\pi_{\rm CC}$,$\pi_{\rm CO}$,n$_{\rm O1}$,n$_{\rm O2}$,$\pi^*_{\rm CC}$,$\pi^*_{\rm CO}$,$\sigma^*_{\rm CC}$,$\sigma^*_{\rm CO}$} & & & & \multicolumn{5}{l}{5.94\tnote{d}} \\
+SA-CASSCF(14,12)AVQZ & & \multicolumn{1}{c}{$\sigma_{\rm CC}$,$\sigma_{\rm CO}$,$\pi_{\rm CC}$,$\pi_{\rm CO}$,n$_{\rm O1}$,n$_{\rm O2}$,$\pi^*_{\rm CC}$,$\pi^*_{\rm CO}$,$\sigma^*_{\rm CC}$,$\sigma^*_{\rm CO}$} & & & & \multicolumn{5}{l}{5.92\tnote{d}} \\
+\hline
+\end{tabular}
+\begin{tablenotes}
+\item[a] This refers to only configurations (of ES / State 2) with excitations of orbitals added to the active space of the prevous CAS. This column only makes sense to include if the CAS's are run in which the active space is increased. \item[b] Orbitals swapped back despite manual swap. \item[c] All CAS(12,8) runs have essentially the same energy yet the csf coefficients appear pretty different. Are the values comparable (not normalized)? In any case shouldn't the same csf be the largest? \item[d] Reference~\cite{loos2019}
+\end{tablenotes}
+\end{threeparttable}}
+\label{tab:glyoxalcas}
+\end{table*}
+
+
+\begin{table*}[!htb]
+\caption{VMC and DMC total energies (a.u.) and excitation energies (eV) of Glyoxal.}
+\resizebox{\columnwidth}{!}{
+\begin{threeparttable}
+\begin{tabular}{lcrrccccccll}
+\hline
+WF &&  No.\ det & No.\ parm & \multicolumn{2}{c}{E$_{\rm VMC}$} & $\Delta$E$_{\rm VMC}$ & $\tau$ & \multicolumn{2}{c}{E$_{\rm DMC}$} & $\Delta$E$_{\rm DMC}$ \\
+\cline{5-6}
+\cline{9-10}
+& & & & GS & ES & & & GS &  ES \\
+\hline
+\multicolumn{10}{l}{State-average} \\
+\cline{1-1}
+CAS(8,6)/BFD-VDZ  &&   61 &  441 & -44.5545(2) & -44.3430(2) & 5.755(7) & 0.05 & -44.6410(2) & -44.4314(2) & 5.704(6) \\
+CAS(12,8)/BFD-VDZ &&  208 &  507 & -44.5563(2) & -44.3482(2) & 5.662(7) & 0.05 & -44.6422(2) & -44.4341(2) & 5.663(6) \\
+\multicolumn{10}{l}{State-specific} \\
+\cline{1-1}
+CAS(8,6)/BFD-VDZ  &&  61 & 441 & -44.5600(1) & -44.3460(1) & 5.823(5) & 0.05 & -44.6445(16) & -44.4325(16) & 5.768(6) \\
+CAS(12,8)/BFD-VDZ && 208 & 506 & -44.5611(2) & -44.3510(2) & 5.717(8) & 0.02 & -44.6425(1) & -44.4339(1) & 5.676(4) \\ 
+\hline
+\multicolumn{1}{l}{exFCI/AVDZ} &&  \multicolumn{1}{l}{5.48(0)\tnote{a}} \\
+\multicolumn{1}{l}{CC3 (\%T$_1$)/AVQZ} &&  \multicolumn{1}{l}{6.76 (1\%)\tnote{a}} \\
+\multicolumn{1}{l}{CASPT2(8,6)/AVDZ} &&  \multicolumn{1}{l}{5.55\tnote{a}} \\
+\multicolumn{1}{l}{CASPT2(8,6)/AVQZ} &&  \multicolumn{1}{l}{5.52\tnote{a}} \\
+\multicolumn{1}{l}{CASPT2(14,12)/AVDZ} &&  \multicolumn{1}{l}{5.47\tnote{a}} \\
+\multicolumn{1}{l}{CASPT2(14,12)/AVQZ} &&  \multicolumn{1}{l}{5.43\tnote{a}} \\
+\multicolumn{1}{l}{PC-NEVPT2(14,12)/AVDZ} &&  \multicolumn{1}{l}{5.56\tnote{a}} \\
+\multicolumn{1}{l}{PC-NEVPT2(14,12)/AVQZ} &&  \multicolumn{1}{l}{5.52\tnote{a}} \\
+\multicolumn{1}{l}{SC-NEVPT2(14,12)/AVDZ} &&  \multicolumn{1}{l}{5.58\tnote{a}} \\
+\multicolumn{1}{l}{SC-NEVPT2(14,12)/AVQZ} &&  \multicolumn{1}{l}{5.55\tnote{a}} \\
+\hline
+\end{tabular}
+\begin{tablenotes}
+\item[a] Reference~\cite{loos2019}
+\end{tablenotes}
+\end{threeparttable}}
+\label{tab:glyoxal}
+\end{table*}
+
+
+
+\clearpage
+
+
+\begin{figure}[htb]
+\begin{center}
+\includegraphics[scale=0.5]{glyoxal-cas86-opt-orbitals.pdf}
+\caption{Optimized glyoxal orbitals from the SA-CASSCF(8,6)/BFD-VDZ calculation.}
+\end{center}
+\end{figure}
+
+\clearpage
+
+\begin{figure}[htb]
+\begin{center}
+\includegraphics[scale=0.5]{glyoxal-cas128-comparison-opt-orbitals.pdf}
+\caption{Comparison of optimized glyoxal orbitals from the SA-CASSCF(12,8)/BFD-VDZ calculation to the SA-CASSCF(8,6)/BFD-VDZ calculation which show change in character or possibly rearranged. The two orbitals in the red box are added to the CAS(8,6) orbitals to make the CAS(12,8) active space. Orbitals 1-3 and 8-13 appear the same and stay in the same order in both.}
+\end{center}
+\end{figure}
+
+
+\clearpage
+
+\section{Tetrazine}
+\label{sec:tetrazine}
+
+
+\begin{table*}[!htb]
+\caption{Summary of CASSCF Calculations on Tetrazine (1$^1A_{1g}\rightarrow$2$^1A_{1g}$)}
+\resizebox{\columnwidth}{!}{
+\begin{threeparttable}
+\begin{tabular}{lccrccccrrc}
+\hline
+CAS/Basis & Manual MO Swaps & MO Types &  No.\ CSFs & \multicolumn{3}{c}{E$_{\rm MCSCF}$} & & \multicolumn{3}{c}{Largest Relevant CSF of ES} \\
+\cline{5-7}
+\cline{9-11}
+        & & & & GS & ES & $\Delta E$ & & No.\ & Coeff. & Occ. of AS \\
+\hline
+\multicolumn{10}{l}{State-average} \\
+CAS(4,4)/BFD-VDZ  & - & \multicolumn{1}{r}{(n$_3$,n$_4$)-($\pi^*_4$,$\pi^*_5$)\;\;\;\;\;} & 6 & -51.02881 & -50.80697 & 6.037 & & 2 & 0.899 & \multicolumn{1}{r}{20 | 20 \;} \\
+CAS(8,6)/BFD-VDZ  & - & \multicolumn{1}{r}{($\pi_2$,n$_3$,$\pi_3$,n$_4$)-($\pi^*_4$,$\pi^*_5$)\;\;\;\;\;} & 21 & -51.07941 & -50.82163 & 7.015 & & 5 & -0.382 & \multicolumn{1}{r}{2202 | 20 \;} \\
+CAS(12,8)/BFD-VDZ  & - & \multicolumn{1}{r}{(n$_1$,n$_2$,$\pi_2$,n$_3$,$\pi_3$,n$_4$)-($\pi^*_4$,$\pi^*_5$)\;\;\;\;\;} & 56 & -51.07999 & -50.84678 & 6.346 & & 42 & -0.188 & \multicolumn{1}{r}{022222 | 20 \;} \\
+CAS(14,10)/BFD-VDZ  & 38$\rightarrow$18\tnote{a} & \multicolumn{1}{r}{($\pi_1$,n$_1$,n$_2$,$\pi_2$,n$_3$,$\pi_3$,n$_4$)-($\pi^*_4$,$\pi^*_5$,$\pi^*_6$)} & 670 & -51.13015 & -50.93001 & 5.446 & & 14 & 0.162 & \multicolumn{1}{r}{2222121 | 101} \\
+\hline
+SA-CASSCF(14,10)/AVDZ & & \multicolumn{1}{c}{$\pi$ valence space (6), (4) n$_{\rm N}$ on nitrogen atoms} & & & & \multicolumn{5}{l}{5.48\tnote{b}} \\
+SA-CASSCF(14,10)/AVQZ & & \multicolumn{1}{c}{$\pi$ valence space (6), (4) n$_{\rm N}$ on nitrogen atoms} & & & & \multicolumn{5}{l}{5.41\tnote{b}} \\
+\hline
+\end{tabular}
+\begin{tablenotes}
+\item[a] To include highest $\pi^*$ orbital. Swap held. \item[b] Reference~\cite{loos2019}
+\end{tablenotes}
+\end{threeparttable}}
+\label{tab:tetrazine_cas}
+\end{table*}
+
+
+
+
+\begin{table*}[!htb]
+\caption{VMC and DMC total energies (a.u.) and excitation energies (eV) of Tetrazine.}
+
+\resizebox{\columnwidth}{!}{
+\begin{threeparttable}
+\begin{tabular}{lcrrccccccll}
+\hline
+WF &&  No.\ det & No.\ parm & \multicolumn{2}{c}{E$_{\rm VMC}$} & $\Delta$E$_{\rm VMC}$ & $\tau$ & \multicolumn{2}{c}{E$_{\rm DMC}$} & $\Delta$E$_{\rm DMC}$ \\
+\cline{5-6}
+\cline{9-10}
+& & & & GS & ES & & & GS &  ES \\
+\hline
+\multicolumn{10}{l}{State-average} \\
+\cline{1-1} 
+CAS(4,4)/BFD-VDZ  &&    6 &  400 & -52.1496(6) & -51.9507(6) & 5.41(2) & 0.05 & -52.2647(2) & -52.0744(2) & 5.179(7) \\
+CAS(8,6)/BFD-VDZ  &&   33 &  415 & -52.1627(7) & -51.9550(7) & 5.65(3) & 0.05 & -52.2728(2) & -52.0769(2) & 5.332(7) \\
+CAS(12,8)/BFD-VDZ &&  112 &  455 & -52.1643(6) & -51.9644(6) & 5.44(2) & 0.05 & -52.2738(2) & -52.0828(2) & 5.196(7) \\
+CAS(14,10)/BFD-VDZ && 1824 & 1139 & -52.1732(1) & -51.9840(1) & 5.148(5) & 0.05 & -52.2784(2) & -52.0922(2) & 5.067(7) \\
+\multicolumn{10}{l}{State-specific} \\
+\cline{1-1}
+CAS(14,10)/BFD-VDZ && 1824 & 1078 & -52.1778(2) & -51.9887(2) & 5.147(9) & 0.02 & -52.2805(1) & -52.0941(1) & 5.071(4)\\
+\hline
+\multicolumn{1}{l}{CCSDT/AVDZ} &&  \multicolumn{9}{l}{5.86\tnote{a}} \\
+\multicolumn{1}{l}{CC3~(\%T$_1$)/AVDZ} &&  \multicolumn{9}{l}{6.22~(1\%)\tnote{a}} \\
+\multicolumn{1}{l}{CC3~(\%T$_1$)/AVQZ} &&  \multicolumn{9}{l}{6.19~(1\%)\tnote{a}} \\
+\multicolumn{1}{l}{CASPT2(14,10)/AVDZ} &&  \multicolumn{9}{l}{4.79\tnote{a}} \\
+\multicolumn{1}{l}{CASPT2(14,10)/AVQZ} &&  \multicolumn{9}{l}{4.68\tnote{a}} \\
+\multicolumn{1}{l}{PC-NEVPT2(14,10)/AVDZ} &&  \multicolumn{9}{l}{4.70\tnote{a}} \\
+\multicolumn{1}{l}{PC-NEVPT2(14,10)/AVQZ} &&  \multicolumn{9}{l}{4.60\tnote{a}} \\
+\multicolumn{1}{l}{SC-NEVPT2(14,10)/AVDZ} &&  \multicolumn{9}{l}{4.78\tnote{a}} \\
+\multicolumn{1}{l}{SC-NEVPT2(14,10)/AVQZ} &&  \multicolumn{9}{l}{4.68\tnote{a}} \\
+\hline
+\end{tabular}
+\begin{tablenotes}
+\item[a] Reference~\cite{loos2019}
+\end{tablenotes}
+\end{threeparttable}}
+\label{tab:tetrazine}
+\end{table*}
+
+\clearpage
+
+\begin{figure}[htb]
+\begin{center}
+\includegraphics[scale=0.5]{tetrazine_cas-1410-opt-orbs.pdf}
+\caption{Optimized tetrazine orbitals from the SA-CASSCF(14,10)/BFD-VDZ calculation.}
+\end{center}
+\end{figure}
+
+\clearpage
+
+
+\bibliographystyle{unsrt}
+\bibliography{summary.bib}
+
+\end{document}

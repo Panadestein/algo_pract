@@ -1,0 +1,31 @@
+<!--
+<!doctype html>
+<html>
+  <head>
+    <title>Proof of concept of the Sphinx wiki integration</title>
+  </head>
+  <body>
+    <h1>Proof of concept of the Sphinx wiki integration</h1>
+    <p>Minimal example of the integration of the Sphinx source files in another <strong>password protected</strong> website.</p>
+    <b>
+    This is the <a href="wiki_source/index.html">Golze Group's Wiki</a>.
+
+  </body>
+</html>
+-->
+
+<html> 
+  <head> 
+    <script src="jquery.js"></script> 
+    <script> 
+    $(function(){
+      $("#includedContent").load("wiki_source/index.html"); 
+    });
+    </script> 
+  </head> 
+
+  <body> 
+     <div id="includedContent"></div>
+  </body> 
+</html>
+

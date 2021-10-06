@@ -1,0 +1,40 @@
+FHI-AIMS
+========
+
+Here you will find information regarding different aspects of the FHI-AIMS software package.
+
+Obtaining FHI-AIMS
+------------------
+
+The group leader holds a licence. You can download the latest release yourself. Please register for the `aimsclub <https://aimsclub.fhi-berlin.mpg.de/club_register.php>`_. In the field ``aimsclub-userid of the FHI-aims license holder`` write simply ``golze``.
+
+.. Note::
+   After registration you should also get an invitation to the gitlab and slack by Sebastian Kokott a day later. If not, please contact the group leader.
+
+Compiling FHI-AIMS
+------------------
+
+How to compile FHI-AIMS in different machines.
+
+Taurus
+^^^^^^
+
+As you might have seen, Taurus has many partitions. In the following are the instructions for **the haswell partition** (intel CPUs). Note, simply using this on romeo (AMD) would be not a good idea (intel software leads usually to errors/bad behavior there).
+
+.. important::
+   Compilation is best done under the workspace in scratch. Please check `this link <https://hpc-wiki.zih.tu-dresden.de/hpc-wiki/bin/view/Compendium/WorkSpaces>`_ as well as the general wiki of `the ZIH <https://hpc-wiki.zih.tu-dresden.de/hpc-wiki/bin/view/Compendium>`_ for more information.
+
+* Load the following modules:
+
+.. code-block:: bash
+		
+   module load modenv/scs5 intel/2019b
+
+* Select a haswell node to use interactively:
+
+.. code-block:: bash
+
+   srun --ntasks=24 --cpus-per-task=1 --time=01:00:00 --mem-per-cpu=1800MB --partition=haswell --pty bash
+
+This should send you to a haswell64; you can also check with ``echo $SLURM_JOB_PARTITION``. 
+  

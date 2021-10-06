@@ -1,0 +1,39 @@
+"""Parses an excel file and analyses data"""
+import pandas as pd
+
+# Define pattern
+
+PATTERN = ["tvI!", "sbR+"]
+NCON = len(PATTERN)
+
+# Load the Excel
+
+DATA_EXCEL = pd.read_excel("./sco.xlsx", header=2, usecols=(0, 1, 2, 3, 4))
+
+# Function to parse sublist in list
+
+
+def pars_subl(lst: list, pat: list) -> list:
+    """Finds sublist in list"""
+    cursor = 0
+    tmpidx = []
+    allidx = []
+    for idx, elem in enumerate(lst):
+        if elem == pat[cursor]:
+            cursor += 1
+            tmpidx.append(idx)
+            if cursor == len(pat):
+                for subel in tmpidx:
+                    allidx.append(subel)
+                cursor = 0
+                tmpidx = []
+        else:
+            cursor = 0
+            tmpidx = []
+    return allidx
+
+
+# Process data
+
+LST = list(DATA_EXCEL['Codes'])
+print(DATA_EXCEL.iloc[pars_subl(LST, PATTERN)])

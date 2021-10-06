@@ -1,0 +1,10 @@
+  program loadjast
+    implicit none
+    integer, parameter :: nelec = 10
+    double precision, dimension(nelec, 3) :: elec_coord
+
+    elec_coord = -1.0d0
+    print *, "culo"
+    call provide_jastrow_full
+
+  end program loadjast

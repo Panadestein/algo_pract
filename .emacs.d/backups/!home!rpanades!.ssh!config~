@@ -1,0 +1,9 @@
+Host sakura.univ-lille1.fr
+	RemoteForward 52698 127.0.0.1:52698
+	User ramon
+
+Host ccpgate.tnw.utwente.nl
+        RemoteForward 52698 localhost:52698
+        User panades
+
+Host ccpgate.tnw.utwente.nl

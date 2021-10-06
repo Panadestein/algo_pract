@@ -1,0 +1,98 @@
+* Remarks on the PBS3 calculation
+
+Some useful remarks in the PSB3 calculation with CHAMP. It also 
+involves electronic structure calculations with Gamess
+
+** RHF
+
+First a RHF calculation using Gamess
+
+*** Gamess calculation
+
+    + Why to use an external file basis set?
+    + Interesting keywords in the input file:
+      - COORD=UNIQUE only symmetry unique atoms in input
+      - RUNTYPE=ENERGY no need, default behaviour
+
+Run a Gamess calculation with the ~submit_gamess~ which I conveniently
+aliased as ~rungam~.
+
+#+begin_src bash
+rungam input_file.inp node ncores
+#+end_src
+
+To get the most convenient node use the ~ccpmon~ command, and the select
+the node with the lowest label (should be faster).
+
+*** Process Gamess output
+
+We need to parse the Gamess output in order to generate suitable files for
+CHAMP. This is achieved with the *Perl* script located in 
+~$BASE/champ/tools/interface/gamess2qmc~ which obviously depends on your
+installation. A good idea is to place it in ~$HOME/bin/~
+
+This script is rich in options, what we want in this case is (for RHF):
+
+#+begin_src bash
+gamess2qmc -g -t rhf -s -r -b baseout output_file.out
+#+end_src
+
+With these options we request the geometry, we fetch orbitals of type RHF,
+we request a file with the symmetry of the LCAO, we create a =basis on radial grid=,
+and set alternative naming to files.
+
+*** Champ calculation
+
+To run a CHAMP job a precise set of steps must be followed, namely:
+
+    1. First create the ~$PWD/pool~ directory
+    2. Move basis and geometry info to ~$PWD/pool~:
+       - All files ending in *.basis.atom*
+       - The file *.bfinfo*
+       - The geometry file *.geometry*
+       - The general file *global.inp* [fn:1] 
+    3. Copy *.lcao* and *.sym* files in run directory
+    4. Create Jastrow file. Use the *jastrow.0* template and modify *a, b, c*[fn:2]
+    5. Create the VMC input file
+    6. If you are running a single determinant calculation, manually create *.det* file
+
+To execute the program I have conveniently created the function:
+
+#+begin_src bash
+runchamp () {
+	CHAMPATH="$HOME"/software/champ/bin
+
+	if [ "$#" -ne 4 ]; then
+	    	echo "Wrong arguments. Expected:"
+	    	echo "runchamp nprocs nodesfile type input"
+		return
+	fi
+
+	if [ "$3" == "vmc" ]; then
+	        mpirun -s all -np "$1" -machinefile "$2" "$CHAMPATH"/vmc.mov1 < "$4"
+        elif [ "$3" == "dmc" ]; then
+	        mpirun -s all -np "$1" -machinefile "$2" "$CHAMPATH"/dmc.mov1 < "$4"
+        fi
+}
+#+end_src
+
+You can generate the ~machinefile~ using ~ccpmon~.
+
+**** Some catch-22
+
+You might need to rename the ECP and basis sets files as there is an extra number at the end.
+
+*** Considerations about the PSB3 molecule
+
+The molecule has chemical formula C5H6NH2+, which implies a total of 44 electrons.
+The use of ECPs reduces this number though. After this, only 32 valence electrons
+are kept, 16 occupied alpha and beta orbitals.
+
+*** Questions regarding CHAMP output:
+  + What is the variable ~iwctype~?
+
+* Notes
+
+[fn:1] This file can be shared by many projects, store it somewhere handy
+and copy paste. 
+[fn:2] Typical expansions are (5 5 0), with no \(f_{een}\)

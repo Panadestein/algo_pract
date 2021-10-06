@@ -1,0 +1,158 @@
+\documentclass[12pt]{beamer}
+
+\usetheme{Oxygen}
+\usepackage{thumbpdf}
+\usepackage{wasysym}
+\usepackage{xcolor}
+\usepackage{ucs}
+\usepackage[utf8]{inputenc}
+\usepackage{pgf,pgfarrows,pgfnodes,pgfautomata,pgfheaps,pgfshade}
+\usepackage{verbatim}
+\usepackage{ragged2e}
+\usepackage{changepage}
+\usepackage{lmodern}
+\usepackage{relsize}
+\usepackage{bm}
+\usepackage{tikz}
+\usepackage[ruled,vlined]{algorithm2e}
+\usetikzlibrary{fit,shapes.geometric}
+\tikzset{every overlay node/.style={draw=black,anchor=north west,
+  },
+}
+\def\tikzoverlay{%
+   \tikz[baseline,overlay]\node[every overlay node]
+}%
+\newcounter{nodemarkers}
+\newcommand<>\circletext[1]{%
+    \tikz[overlay,remember picture] 
+    \node (marker-\arabic{nodemarkers}-a) at (0,1.5ex) {};%
+    #1%
+    \tikz[overlay,remember picture]
+    \node (marker-\arabic{nodemarkers}-b) at (0,0){};%
+    \tikz[overlay,remember picture,inner sep=2pt]
+    \node#2[draw,ellipse,red,fit=(marker-\arabic{nodemarkers}-a.center) (marker-\arabic{nodemarkers}-b.center)] {};%
+    \stepcounter{nodemarkers}%
+}
+
+\newcommand\blfootnote[1]{%
+\begingroup
+\renewcommand\thefootnote{}\footnote{#1}%
+\addtocounter{footnote}{-1}%
+\endgroup
+}
+
+\newcommand{\norm}[1]{\left\lVert#1\right\rVert}
+
+\definecolor{mycolor}{RGB}{0,100,0}
+\setbeamertemplate{title page}[default][colsep=-4bp,rounded=true,shadow=true]
+\setbeamertemplate{items}[ball]
+\setbeamertemplate{section in toc}[circle]
+\setbeamerfont{subsection in toc}{size=\footnotesize}
+
+\graphicspath{{figures/}} % Directory in which figures are stored
+
+\title{\large Application to postdoctoral position on GW methods}
+\author[PANADES-BARRUETA]{\small Dr. Ram\'{o}n Lorenzo Panad\'{e}s Barrueta
+\vspace{-0.6cm}
+}
+\date{\scriptsize May 7, 2021}
+
+\apptocmd{\frame}{}{\justifying}{}
+
+\titlegraphic{\includegraphics[width=1.7cm]{en.jpg}\hspace*{6.0cm}~%
+   \includegraphics[width=2.8cm]{tub.png}
+}
+\begin{document}
+
+\frame{\titlepage}
+
+\newcommand<>{\highlighton}[1]{%
+  \alt#2{\structure{#1}}{{#1}}
+}
+
+\newcommand{\icon}[1]{\pgfimage[height=1em]{#1}}
+
+\begin{frame}
+  \frametitle{\normalsize About me}
+  \begin{exampleblock}{Academic career}
+    \begin{itemize}
+    \item \textbf{BSc in Radiochemistry}, InSTEC, Havana, Cuba
+    \item \textbf{MSc in Physics}, University of Lille, France
+    \item \textbf{PhD in Physics}, University of Lille, France
+    \item \textbf{Postdoc}, University of Twente, Netherlands
+  \end{itemize}
+  \end{exampleblock}
+  \begin{block}{Scientific interests}<2->
+  \begin{itemize}
+  \item Method development (Nuclear Quantum  Dynamics and Electronic Structure)
+  \item HPC optimization of numerically intensive code
+  \item Research Software Engineering (RSE)
+  \item Numerical mathematics
+  \end{itemize}
+\end{block}
+\vspace{-.4cm}
+\end{frame}
+
+\begin{frame}
+\frametitle{\normalsize Motivation to apply}
+  \begin{minipage}{.6\linewidth}
+\small{Excellent opportunity to employ my RSE and HPC skills, and broaden my knowledge in the field (e.g. GPU acceleration)}
+\end{minipage}
+\hspace{1cm}
+  \begin{minipage}{.1\linewidth}
+\includegraphics[width=6.5em]{progw.png}
+\end{minipage}
+
+\vspace{.5cm}
+
+  \begin{minipage}{.6\linewidth}
+\small{I have been fascinated with the elegance of GW methods since Prof. Jochen Schirmer introduced them to me.}
+ \end{minipage}
+ \hspace{1cm}
+   \begin{minipage}{.1\linewidth}
+ \includegraphics[width=3.0em]{many.jpg}
+\end{minipage}
+  
+\vspace{.5cm}
+
+  \begin{minipage}{.6\linewidth}
+\small{Family relocation.}
+\end{minipage}
+\hspace{1cm}
+  \begin{minipage}{.1\linewidth}
+\includegraphics[width=4.7em]{llcr.jpg}
+  \end{minipage}
+\end{frame}
+
+\begin{frame}
+  \frametitle{\normalsize Nuclear Quantum Dynamics}
+\vspace{-2.7cm}
+  \begin{block}{}
+  Development of optimization and tensor decomposition algorithms for representing PES within MCTDH. \textcolor{oxygenblue}{Two new methods} and corresponding open source software packages released.
+\end{block}
+\begin{tikzpicture}[remember picture,overlay]
+\node[anchor=south west,inner sep=0] at (-0.0,-5.0) {\includegraphics[width=1.0\textwidth]{bd_1.pdf}};
+\end{tikzpicture}
+\end{frame}
+
+\begin{frame}
+\frametitle{\normalsize Electronic Structure}
+\begin{tikzpicture}[remember picture,overlay]
+\node[anchor=south west,inner sep=0] at (-0.5,-4.5) {\includegraphics[width=1.1\textwidth]{bd_2.pdf}};
+\end{tikzpicture}
+\end{frame}
+
+\begin{frame}
+\frametitle{\normalsize High Performance Computing}
+\begin{tikzpicture}[remember picture,overlay]
+\node[anchor=south west,inner sep=0] at (-0.5,-4.5) {\includegraphics[width=1.1\textwidth]{bd_3.pdf}};
+\end{tikzpicture}
+\end{frame}
+
+\begin{frame}
+  \centering \Large
+  Thanks for your attention!\\
+  \textcolor{oxygenblue}{Danke für Ihre Aufmerksamkeit!}\\~\\
+\end{frame}
+
+\end{document}

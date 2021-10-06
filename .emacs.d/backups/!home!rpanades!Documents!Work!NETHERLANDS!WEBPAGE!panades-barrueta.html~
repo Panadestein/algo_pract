@@ -1,0 +1,34 @@
+<div>
+<style> 
+#ccp li {padding: 3px 3px;}
+</style>
+
+<table>
+   <tbody>
+     <tr>
+      <td>
+       <img width="250px" alt="Dr. Ramón L. Panadés-Barrueta" src="images/panades-barrueta.jpg">
+      </td>
+
+      <td valign="top" style="padding:0px 15px;">
+       Dr. Ramón L. Panadés-Barrueta<br>
+       University of Twente<br>
+       Faculty of Science and Technology<br>
+       <br/>
+       Carre building, CR 4033<br>
+       P.O. Box 217<br>
+       7500 AE Enschede<br>
+       The Netherlands<br>
+       <br/>
+       Phone: +31-53-489-5444 <br>
+       E-mail: <a href="mailto:r.l.panadesbarrueta@utwente.nl">r.l.panadesbarrueta@utwente.nl</a> <br><br>
+      </td>
+     </tr>
+  </tbody>
+</table>
+
+I am a postdoctoral fellow
+
+During my thesis, I worked in the development and application of optimization and tensor decomposition algorithms for obtaining Potential Energy Surfaces.
+
+</div>

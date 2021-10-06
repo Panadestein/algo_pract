@@ -1,0 +1,6 @@
+"""Plots the energies of two state VMC"""
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Load data
+

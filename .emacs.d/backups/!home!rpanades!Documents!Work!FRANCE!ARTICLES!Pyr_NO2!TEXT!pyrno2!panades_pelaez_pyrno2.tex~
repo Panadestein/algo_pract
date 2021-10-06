@@ -1,0 +1,445 @@
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% This is a (brief) model paper using the achemso class
+%% The document class accepts keyval options, which should include
+%% the target journal and optionally the manuscript type.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\documentclass[journal=jpcafh,manuscript=article]{achemso}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Place any additional packages needed here.  Only include packages
+%% which are essential, to avoid problems later. Do NOT use any
+%% packages which require e-TeX (for example etoolbox): the e-TeX
+%% extensions are not currently available on the ACS conversion
+%% servers.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage[version=3]{mhchem} % Formula subscripts using \ce{}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{amsmath}
+\usepackage{easybmat}
+\usepackage{siunitx}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% If issues arise when submitting your manuscript, you may want to
+%% un-comment the next line.  This provides information on the
+%% version of every file you have used.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%\listfiles
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Place any additional macros here.  Please use \newcommand* where
+%% possible, and avoid layout-changing macros (which are not used
+%% when typesetting).
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand*\mycommand[1]{\texttt{\emph{#1}}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Meta-data block
+%% ---------------
+%% Each author should be given as a separate \author command.
+%%
+%% Corresponding authors should have an e-mail given after the author
+%% name as an \email command. Phone and fax numbers can be given
+%% using \phone and \fax, respectively; this information is optional.
+%%
+%% The affiliation of authors is given after the authors; each
+%% \affiliation command applies to all preceding authors not already
+%% assigned an affiliation.
+%%
+%% The affiliation takes an option argument for the short name.  This
+%% will typically be something like "University of Somewhere".
+%%
+%% The \altaffiliation macro should be used for new address, etc.
+%% On the other hand, \alsoaffiliation is used on a per author basis
+%% when authors are associated with multiple institutions.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\author{Ram\'on L. Panad\'es-Barrueta}
+\email{ramon-lorenzo.panades-barrueta@univ-lille.fr}
+\author{Denis Duflot}
+\author{Koundioun Dembele}
+
+\affiliation[Universit\'e de Lille]
+{Laboratoire de Physique des Lasers, Atomes et Mol\'ecules (PhLAM), Unit\'e Mixte de Recherche (UMR) 8523, Bâtiment P5 Universit\'e de Lille, Villeneuve d'Ascq Cedex, France.}
+
+\author{\\Daniel Pel\'aez-Ru\'iz}
+\email{daniel.pelaez-ruiz@universite-paris-saclay.fr}
+\affiliation[Universit\'e Paris-Saclay]
+{Institute de Sciences Moléculaires d'Orsay (ISMO), Unit\'e Mixte de Recherche (UMR) 8214, Rue André Rivière, Bâtiment 520, Universit\'e Paris-Saclay, Orsay Cedex, France}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% The document title should be given as usual. Some journals require
+%% a running title from the author: this should be supplied as an
+%% optional argument to \title.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\title[Pyr-NO2]
+  {Automatic vdW-TSSCDS determination of the physisorbed stationary points of the \ce{NO2}-Pyrene van der Waals cluster in full dimensionality}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Some journals require a list of abbreviations or keywords to be
+%% supplied. These should be set up here, and will be printed after
+%% the title and author information, if needed.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\abbreviations{IR,NMR,UV}
+\keywords{PAH, vdw-TSSCDS, Stationary points}
+
+\begin{document}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% The manuscript does not need to include \maketitle, which is
+%% executed automatically.  The document should begin with an
+%% abstract, if appropriate.  If one is given and should not be, the
+%% contents will be gobbled.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{abstract}
+Place the abstract here.
+\end{abstract}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Start the main part of the manuscript here.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+In this chapter we present the initial results of the application of the previously described methodologies to the Pyrene(\ce{C16H10})-\ce{NO2} system, which is depicted in Figure~\ref{thesystempyrno2}. The study of the aforementioned interaction (Pyr-\ce{NO2} in what follows) has been performed using both the recently developed van der Waals extension of the Transition State Search by Chemical Dynamics Simulation method (vdW-TSSCDS)\cite{kopec2019vdw}, as implemented in a beta version that is now included in the AutoMekin software package\cite{automekin}, the SRP-MGPF method~\cite{panades2019specific}. The former (Section~\ref{mframtopo}) allows for efficiently and automatically sample the molecular configuration space of a (non)-covalently bound system in order to obtain the \emph{so-called} Reaction Network (RXN), i.e.\ all the stationary points of the system and their topological interconnections. The latter method (Chapter~\ref{poten}) generates a reparametrized semiempirical electronic Hamiltonian which is used to generate a PES expressed on the grid which is subsequently tensor decomposed by the MGPF~\cite{pel13:014108} or the HOOI~\cite{lat00:1324} algorithms in order to perform nuclear quantum dynamics calculations. The PESs generated with SRP-MGPF can be also employed, as is the case here, as a high quality guess for the SOP-FBR method~\cite{panades2020sop}. To the best of our knowledge, the present study constitutes the first theoretical investigation of the system of interest in a systematic way. This chapter is divided in two main parts, the first one dealing with the topographical studies of the Pyr-NO2 intermolecular (I) PES, and the second one with the computation of the interaction potential.
+
+\begin{figure}[h]
+\begin{center}
+\includegraphics[scale=0.2]{Figures/pyrthesis.png}
+\end{center}
+\caption{The Pyrene(\ce{C16H10})-\ce{NO2} system. Carbon atoms are represented in brown, Hydrogen atoms in white, Oxygen atoms in red, and the Nitrogen atom in light gray.}\label{thesystempyrno2}
+\end{figure}
+
+
+\section{Topographical studies of intermolecular potentials}\label{eltopo}
+
+In this Section, we shall present a concise description of the fully automated algorithm employed for the determination of the relevant (non-covalently bound) stationary points for the target system and a description of the levels of electronic structure theory used to characterize its intermolecular Potential Energy Surface (PES). The obtained stationary points will be presented and from them the reaction network will be elucidated.
+  
+\subsection{The (vdW-)TSSCDS method revisited}
+
+As discussed in Section~\ref{mframtopo}, the Transition State Search using Chemical Dynamics Simulation (TSSCDS) method~\cite{martinez2015automated,martinez2015automateda,rodriguez2018tsscds2018} in its freely distributed implementation AutoMekin~\cite{automekin} provides an elegant way of exploring PESs and simultaneously characterizing the stationary points in covalent~\cite{martinez2015automated,martinez2015automateda,rodriguez2018tsscds2018} as well as organometallic compounds~\cite{varela2017automated}. The TSSCDS algorithm has been recently generalized in our research group in collaboration with its core developer for the study of non-covalent compounds, the so-called van der Waals (vdW)-TSSCDS approach\cite{kopec2019vdw}. These modifications have been recently implemented in the AutoMeKin software\cite{automekin}. Furthermore, we have recently shown that the (vdW-)TSSCDS approach constitutes an excellent means of generating a set of \emph{highly optimal} reference points for the subsequent fitting of a global PES~\cite{panades2019specific}.
+
+The basic idea behind the (vdW-)TSSCDS approach is to sample the configuration space of a molecular system making use of a large number of high-energy microcanonical (or canonical if desired) classical trajectories in which the forces are provided by inexpensive methods, e.g.\ semiempirical (low-level, LL) methods. The method is \emph{quasi} black-box and requires a single initial input geometry to commence, although several geometries can be used in order to reduce computational time and ensure a more efficient sampling of the regions of interest in the configuration space. The LL search for transition states in vdW-TSSCDS is a metaheuristic process that loosely resembles the Iterated Local Search algorithm\cite{lourencco2003iterated}. The BBFS-detected guess structures (see Section~\ref{mframtopo}) are used as starting points for transition state (TS) optimizations at the low-level of theory. Due to the stochastic nature of the method, the resulting transition states must be screened in order to detect duplicates. The screening process is performed by comparison of one or several molecular parameters in the queried structures, for example the weighted connectivity matrices, a set of SPRINT (social permutation invariant) coordinates for each structure~\cite{pietrucci2011graph} or the combined set of energies and harmonic frequencies of the molecule. With the previous step we ensure that no duplicated structure is present in the set. Intrinsic reaction coordinate (IRC)~\cite{fukui1981path} calculations are then performed for every transition state in the pruned set. The IRC calculations are followed by optimizations of the final step geometries in the forward and backward direction, which are then classified into minima and reaction products of the PES\@. This information allows one to construct the so-called reaction network (RXN) that summarizes which transition state connects which minima and products. At this point it should be noted that given a set of equivalent geometries, the algorithm will provide only one of these structures~\cite{kopec2019vdw}.
+
+With the optimized LL transition states in hand, one can proceed to its reoptimization to an appropriate high-level (HL) \textit{ab initio} or Density Functional Theory (DFT) electronic structure method. The low-level transition states serve therefore as guess structures for the subsequent high-level optimizations. As in the LL step, one can follow the intrinsic reaction coordinates for all HL transition states and identify the corresponding minima and products, thus allowing for a complete characterization of the reaction network at the HL\@. By combining the low-level and high-level calculations, the (vdW-)TSSCDS method becomes a powerful tool to obtain accurate information about reactivity and topography of the PES of a system at a low computational cost. The method has been successfully employed in a number of different applications ranging from combustion chemistry,~\cite{ferro2018influence,fenard2018model} through photolysis~\cite{perez2016photodissociation,wilhelm2017photolytic,vazquez2015hcn} and mass spectrometry~\cite{molina2016gas} to organometallic catalysis~\cite{varela2017automated}.
+
+In the vdW-TSSCDS formulation the information about intramolecular bounds is contained in the on-diagonal blocks of the connectivity matrix (Equation~\ref{Eq:ConnMat}), whereas the non-covalent interactions are described by the off-diagonal blocks (see Section~\ref{mfram5}). The definition of the reference distance (Equation~\ref{Eq:coefficients_ConnMat}) consequently needs to be extended, being now the sum of covalent radii or the sum of van der Waals radii, respectively. This definition of the connectivity matrix  has enabled the study of n-body problems within the rigid and semi-rigid monomer approaches, as well as in a fully flexible manner.~\cite{kopec2019vdw}.
+
+\subsection{vdW-TSSCDS calculations on the Pyr-NO2 system}
+
+As it was previously outlined, the vdW-TSSCDS method operates in two main stages: LL and HL\@. Even though the default set of LL and HL parameters are typically appropriate for \emph{any} system (this has been the rule for our studies so far), it is of course possible to fine tune them according to the needs of the system in hand. One of the key aspects in this process is the selection of the adequate level of electronic structure, which will be discussed in the next subsection. 
+
+The low level stage of the method was initialized with a set of different geometries containing the \ce{NO2} molecule judiciously placed according to the symmetry (\(D_{2h}\)) of the Pyrene molecule at its equilibrium geometry. Following the logic of vdW-TSSCDS, two main fragments were defined (the Pyrene and the \ce{NO2} molecule) and the electronic structure level was specified (see Section~\ref{estruct}). The exploration of the configuration space started in parallel from each of the initial geometries. A large number of batches of microcanonical trajectories with a maximum energy of 200 kcal/mol were propagated for 500 fs. The temporal evolution of the connectivity matrices was analyzed at a fixed frequency (every 5 \(fs\)) by the BBFS algorithm, which was in turn also parametrized to set thresholds for the detected values of the lower harmonic frequencies (see discussion in Section 3 in Reference~\cite{kopec2019vdw}). The candidate structures to LL TS were then screened and the resulting unique\footnote{There are symmetry equivalent geometries (over and below the Pyrene cycle for instance) that must be generated in an additional step.} geometries were optimized with a large gradient threshold. The rationale of this choice is that the obtained transition states at this level don't need to be \emph{exact} but rather \emph{close} to the high level transition states. By increasing the level of accuracy of the low level calculations one can potentially lose valuable guess structures at the HL due to the different topographies of the PES at the different levels (see discussions in Sections 3 and 4.3 in Reference~\cite{kopec2019vdw}). To finish at the LL stage one may optionally determine the RXN and isolate the corresponding minima and products.
+
+The high level stage of the method receives as input the LL transition states and reoptimizes then at the new level of electronic structure. This constitutes the ``topographic filter'' of the method because some of the LL transition states might not exist at the HL\@. The \emph{surviving} optimized transition states are then screened in search for duplicates, and the unique ones are used as initial structures in IRC calculations. The results of this IRC calculations allow for obtaining the corresponding minima and products, and with them the high level RXN\@.
+
+It can be inferred from the previous description that the bottleneck of the algorithm (apart from the unavoidable HL optimizations and IRCs) is the computation and BBFS-identification of \emph{all} the LL TSs. Despite the efficiency of the independent algorithms, the stochastic nature of the method might imply a large number of LL trajectories and the concomitant BBFS steps, thus rendering the whole process slow. In this respect, it has to be emphasized that new promising techniques of accelerated dynamics are currently being implemented in the AutoMeKin software~\cite{automekin}. The remaining steps of the algorithm are fairly straightforward with the exception of the high level transition state optimizations, which are far more complicated than the optimization of minima~\cite{schlegel2011geometry}. The IRC calculations can be also problematic if the region of the PES in consideration is flat (shallow potential valley)~\cite{maeda2015intrinsic}, as it is frequently the case in weakly bound complexes. As it should be clear, these are issues independent of the (vdW-)TSSCDS algorithm. For a more detailed description of the (vdw-)TSSCDS algorithm please consult Section~\ref{mframtopo}. 
+
+\subsection{Electronic Structure Calculations: Low-level and High-level}\label{estruct}
+
+The (vdW-)TSSCDS method relies on the electronic structure machinery available for the system in hand. Our approach in this regard was to maximize the ratio between the quality of results and computational time. The AutoMekin software package~\cite{automekin} (former (vdW-)TSSCDS) has implemented the suitable interfaces to the corresponding \emph{academic standard} electronic structure software packages. As LL calculations are usually carried out with semiempirical methods, we use MOPAC2016~\cite{mopac} to perform them. All the HL calculations has been carried out by the Gaussian software package~\cite{g16}. Concerning the low-level of theory, the PM7 method~\cite{stewart2013optimization} is the default choice in the TSSCDS approach and it has proven its capabilities in chemical studies ranging from covalently bound systems~\cite{martinez2015automateda} to organometallic ones~\cite{varela2017automated}. More recently, it has shown its value in the case of non-covalently bound systems~\cite{kopec2019vdw}.
+
+With respect to the high-level, all stationary points (minima and first-order saddle points) as well as points along the IRC have been optimized and characterized by their harmonic frequencies with the unrestricted version of the long-range and dispersion corrected functional $\omega$B97X-D by Chai and Head-Gordon~\cite{chai2008long}. All geometries have been optimized at the tight criterion from Gaussian and the option SuperFineGrid has been used throughout in order to  avoid spurious results in the DFT calculations~\cite{bootsma_wheeler_2019}. A benchmark of several Dunning basis sets (see Section~\ref{mfram3}) was performed. The results indicated that the cc-pVDZ is one that offered the best compromise between accuracy and CPU time. The proposed approach has been shown to be adequate for the treatment of similar systems, where one needs an accurate description of the long-range dispersion forces~\cite{garcia2014first,garcia2017dft}. 
+
+As was briefly mentioned in the previous subsection and extensively discussed in Reference~\cite{kopec2019vdw}, IRC calculations might be very challenging for very flat regions of the potential. This implies that to obtain a smooth profile (or even convergence) in the IRC curves the algorithm selection and their corresponding parameters needs to be craftily tinkered. There is a number of IRC algorithms available in the Gaussian software package~\cite{g16}. The selection of the most adequate for the problem in hand depends on many factors like size and nature of the system and the underlaying electronic structure approach. Whereas the Hessian-based Predictor-Corrector integrator~\cite{hratchian2004accurate} (HPC) is probably the most accurate and usually a default choice algorithm, for a large system with very flat potential landscape like Pyr-NO$_2$ a simpler local quadratic approximation~\cite{page1988evaluating} (LQA) has proven to be a better choice, as has been established~\cite{koseki1989intrinsic}. In addition to this choice, the step size of the calculations was also reduced with respect to the default value and the number of steps increased. This combination of options has allowed the computation of relatively smooth IRC energy profiles.  
+
+\subsection{Low Level calculations: PM7 semiempirical guess PES}
+
+Any stochastic optimization algorithm must define a set suitable termination conditions in order to properly operate. In our case, we have used the maximum number of iterations\footnote{Each iteration corresponds to a trajectory in our framework.} and an iteration threshold for the newly discovered transition states (LL-TS). In simple words, we increase progressively the number of microcanonical trajectories with random initial conditions (compatible with the total energy available), thus sampling different regions of configuration space and stop the search when the convergence curve (number of unique LL-TS versus the number of trajectories) reaches a \emph{sufficiently large plateau} for a fixed number of trajectories. 
+
+Using the MOPAC2016 software package, a total of 41629 dynamic reaction coordinate trajectories\footnote{The path followed by all atoms of a system while assuming constant energy. See the MOPAC \href{http://openmopac.net/manual/DRC_coordinates.html}{manual} for more details.} (DRC) recorded every  femtosecond were launched at the PM7 level of theory. The calculations were distributed in 4120 batches, and the average CPU time was of 78 \(s\). The convergence threshold was set to 40 \% of the total number of trajectories. The trajectories were started from an small set of initial geometries chosen to cover key regions of configuration space according to the symmetry of the \emph{substrate}, the Pyrene molecule. The number of unique transition states was monitored at a constant frequency by screening of the BBFS guess geometries.  The convergence process can be better understood by analyzing Figure~\ref{fig_converg}, in which the evolution of the amount of unique detected transition states is represented again the total number of iterations. Note how the final stabilization of the amount of transition states spans 40 \% of the total number of trajectories. At the end of this stage, all unique transition states were fed to the HL section of the method. As it can be appreciated on the plot, a total of 23 unique transition states was found.
+
+\begin{figure}[h]
+\begin{center}
+\includegraphics[scale=.4]{Figures/conv_pyrno2_ll.png}
+\end{center}
+\caption{Convergence of the amount of unique LL transition states detected by the vdW-TSSCDS algorithm with respect to the total number of trajectories. The termination condition was set to no new structures in span of 40 \% of the total number of trajectories, with a minimum of 30000 trajectories. Note the stabilization of the curve in the last segment.}\label{fig_converg}
+\end{figure}
+  
+\subsection{High Level calculations}
+
+Once all transition states at the LL were located, we proceeded to perform the HL calculations. In this second stage the former structures were reoptimized at a higher level of theory, which was set to the unrestricted version of the long-range and dispersion corrected functional U\(\omega\)B97XD/cc-pVDZ (see Section~\ref{estruct}). After the corresponding screening, IRC calculations were carried out on the surviving structures and the corresponding minima were optimized. Single-point BSSE calculations were also performed. Due to the size of the system of interest, nodes with octa-core processors and 36 gigabytes of RAM were used for each optimization.
+
+\subsubsection{Transition states}
+
+The 23 unique LL transition states were then reoptimized at full  dimensionality (81D) using the Gaussian software package. The convergence criteria was set to \emph{tight} and the default maximum number of cycles increased to 100. The average CPU time for the TS optimizations under these conditions was 4.5 hours. After optimization and screening, a total of 5 unique transition states were obtained. The corresponding structures are represented in Figure~\ref{fig_tss}, where we have represented with green arrows the normal modes associated  with the imaginary frequency. 
+    
+\begin{figure}[h]
+\begin{center}
+\includegraphics[scale=0.4]{Figures/ts_structs2.png}
+\end{center}
+\caption{Frontal and transverse projections of the five transition states of the Pyr-\ce{NO2} system obtained after optimization of the 23 LL transition states at the U$\omega$B97XD/cc-pVDZ Integral(SuperFineGrid) level of theory, and subsequent screening. The normal mode associated with the imaginary frequency is represented and the value of the latter reported, as well as the distance between the centers of mass of both molecules \(R_{CM}\).}\label{fig_tss}
+\end{figure}
+
+As we can see from the frontal and transverse projections in Figure~\ref{fig_tss}, in all structures but one (TS5) the projection of the center of masses of the NO$_2$ molecules lies near the in the vicinity of the central \ce{C} atoms of Pyrene. The average distance between the centers of mass between the molecules \(R_{CM}\) is 3.3682 \AA{}. The orientation of the \ce{NO2} molecule also covers a wide range of angles, with some structures having the oxygen atoms pointing ``downwards'' with respect to the Pyrene (TS1, TS5) and some ``upwards'' (TS2, TS3). In agreement with experimental findings~\cite{zimmermann2013formation} in which no reactivity between \ce{NO2} and Pyrene was observed, we have only found physisorbed structures. Nevertheless, to further test this observation, we performed some additional HL optimizations by manually placing the \ce{NO2} molecule at distances ranging from 3.0 up to 5.0 \AA{} over different sites of the Pyrene molecule. Neither was found reactivity in this case.
+
+\subsubsection{IRC calculations}
+
+We have further characterized the HL TS by performing the corresponding IRC calculations in order to obtain the minima and products that will further conform the reaction network (RXN). We performed the IRC calculations using the LQA algorithm with reduced step size and augmented number of steps, keeping the same level of theory as for the transition states (U$\omega$B97XD/cc-pVDZ). The corresponding energy profiles are shown in Figure~\ref{ircs_plots}. 
+
+In the plots the geometry of the corresponding transition state has been set in the zero of energy (in $cm^{-1}$). The first observation here is that the curves are not smooth and the corresponding landscapes are very shallow in all cases, with a maximum barrier of only 200 $cm^{-1}$ and a minimum of less than 10 $cm^{-1}$. The limitations of IRC calculations for this kind of topology was have been addressed before (see Section~\ref{estruct}), and as expected for the Pyr-NO2$_2$ system, several difficulties were encountered. Despite our efforts to circumvent convergence issues that implied a fine tuning of each calculation individually, some of the IRC curves do not show a smooth profile.
+
+\begin{figure}[htp]
+\centering
+\includegraphics[width=.3\textwidth]{Figures/irc_ts1.png}\quad
+\includegraphics[width=.3\textwidth]{Figures/irc_ts2.png}\quad
+\includegraphics[width=.3\textwidth]{Figures/irc_ts3.png}
+
+\medskip
+
+\includegraphics[width=.3\textwidth]{Figures/irc_ts4.png}\quad
+\includegraphics[width=.3\textwidth]{Figures/irc_ts5.png}
+
+\caption{Intrinsic Reaction Coordinate energy profiles obtained with the LQA algorithm for each one of the five transition states of the Pyr-NO$_2$ system at the U\(\omega\)B97XD/cc-pVDZ Integral(SuperFineGrid) level of theory. Energies are reported in $cm^{-1}$.}\label{ircs_plots}
+\end{figure}
+
+In addition to the LQA algorithm, all of the available algorithms in the Gaussian software packaged were tested. The presented results are the best the authors could converge at the selected level of theory, and the underlying difficulties will be considered in what follows as \emph{state of the art} limitations of this particular kind of calculation~\cite{maeda2015intrinsic}. The final structures in each of the two directions of the IRC pathways were further optimized in search for minima or asymptotic products, and together with the transition states and the corresponding IRCs, they constitute the RXN\@. In the next subsection the optimization of this structures is described in detail.
+
+\subsubsection{Minima derived from the IRCs}\label{minimminam}
+
+Starting from the 10 final structures of the IRC calculations we proceeded to launch the corresponding optimizations in search for minima and products. The convergence criteria was set to \emph{tight} and the default maximum number of optimization cycles increased up to 100. Under these conditions the median computational time of the optimizations was 4.1 hours. Some of the minima were very hard to optimize and required further human intervention, with execution times of roughly 100 hours (particularly in the case of the minima corresponding to TS5). All the optimized structures have been characterized as minima (all harmonic frequencies are positive), i.e.\ there are no asymptotic products in the obtained reaction network at the established level of theory. The results of this stage are presented in Figure~\ref{fig_mins}.
+
+\begin{figure}[h]
+\begin{center}
+\includegraphics[scale=0.4]{Figures/min_structs.png}
+\end{center}
+\caption{Frontal and transverse projections of the 10 minima of the Pyr-NO$_2$ system obtained after optimization of the ending structures of the 5 corresponding IRC pathways at the U$\omega$B97XD/cc-pVDZ Integral(SuperFineGrid) level of theory. The distance between the centers of mass of both molecules \(R_{CM}\) is reported. The minima are labeled accordingly to their corresponding transition states and the letters \textbf{R} and \textbf{F} make reference to the reverse and forward directions respectively.}\label{fig_mins}
+\end{figure}
+
+The geometries of the minima are relatively close to those of their corresponding transition states, which is in agreement with the shallow topography of the PES\@. The \ce{NO2} molecule covers again a wide range of orientations, and its average distance from the Pyrene plane (distance $R_{CM}$ in the figures) is 3.333 \AA{}. It should be mentioned that the (vdW-)TSSCDS method does not provide all geometries generated by symmetry operations on the \ce{NO2} molecule with respect to the Pyrene plane, and consequently further analysis must be performed in order to generate the possibly missing structures.
+
+\subsection{BSSE estimation}
+
+As it is customary (and necessary) in this type of studies, we studied the influence of the Basis Set Superposition Error (see Section~\ref{mfram3}). Previous results seem to indicate that for van der Waals complexes the Counterpoise correction (CP)\cite{boys1970calculation} is not useful\cite{sheng2011counterpoise}. Nevertheless, we carried out standard CP calculations for all the stationary points using the Gaussian software package.  Two fragments were defined, i.e.\ the \ce{NO2} and the Pyrene molecules, and the same level of theory of the previous HL calculations was kept. The BSSE corrected energies are compared with the uncorrected energies in Table~\ref{table1}.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{ccc}
+\toprule
+Structure   & \(\Delta E (cm^{-1})\) & \(BSSE (cm^{-1})\) \\
+\midrule
+MINR-TS1    & 4.3894e-04 & -1.9603e-03  \\  
+MINR-TS2    & 4.3894e-04 & -1.9120e-01  \\  
+MINR-TS3    & 6.4751e+01 &  4.8384e+01  \\ 
+MINR-TS4    & 3.8800e+01 &  1.7709e+01  \\ 
+MINR-TS5    & 7.6236e+01 &  2.1028e+02  \\ 
+TS1         & 7.4973e+01 &  2.6365e+02  \\ 
+TS2         & 7.4372e+01 &  3.8658e+01  \\ 
+TS3         & 1.3858e+02 &  5.3892e+01  \\ 
+TS4         & 5.1983e+01 &  1.1312e+01  \\ 
+TS5         & 2.8805e+02 &  3.3307e+02  \\ 
+MINF-TS1    & 4.3894e-04 & -9.0171e-02  \\  
+MINF-TS2    & 6.4752e+01 &  4.8395e+01  \\ 
+MINF-TS3    & 6.4753e+01 &  4.8308e+01  \\ 
+MINF-TS4    & 0.0000     &  0.0000      \\ 
+MINF-TS5    & 9.7619e+01 &  7.3458e+01  \\ 
+\bottomrule
+\end{tabular}
+\caption{Energies in \(cm^{-1}\) relatives to the global minimum of all stationary points of the Pyr-NO\(_2\) PES computed with and without BSSE correction at the  U$\omega$B97XD/cc-pVDZ Integral(SuperFineGrid) level of theory.}\label{table1}
+\end{table}
+
+Some general remarks can be made with the gathered information. Important topographical differences (different relative energies) can be observed when comparing the BSSE corrected PES with the uncorrected one. Indeed, the global minimum changes from MINF-TS4 in the uncorrected to MINR-TS1 in the BSSE PES and the RMSE of both sets of energies is 67.09 \(cm^{-1}\). Provided the height of the barriers in the uncorrected PES, these deviations represent a substantial change in the structure of the RXN\@. To further check the validity of th CP results a more detailed investigation should be carried out. The above will be part of a dedicated study.
+
+\subsection{Reaction network}
+
+To conclude the first part of this chapter, the RXN formed by the stationary points of the Pyr-\ce{NO2} system will be presented. We will start our analysis with the IRC corresponding to the TS1. As it can be seen in Figure~\ref{cssympyrfig}, the two minima (MINF-TS1 and MINR-TS1, with F,R referring to the forward and reverse directions respectively) and the aforementioned transition state have symmetry \(C_s\), i.e.\ there is only one element of symmetry in addition to the identity (\(E\)) and is the mirror plane containing the \ce{N} and the four central \ce{C} atoms. The importance of this piece of information will become apparent when analyzing the RXN, for which these are the central structures.
+
+\begin{figure}[h]
+\begin{center}
+\includegraphics[scale=.25]{Figures/cssympyr.png}
+\end{center}
+\caption{Stationary points of the IRC\(_{TS1}\). The minima in the reverse and forward directions have been labeled MR1 and MF1 respectively for simplicity in the notation. The three stationary points present belong to the \(C_s\) symmetry group.}\label{cssympyrfig}
+\end{figure} 
+
+The proposed reaction network of the system is represented in Figure~\ref{rxntotal}. As suggested before, the IRC\(_{TS1}\) lies at the center of the RXN\@. The evidence collected from the analysis of the structures of the individual minima suggested that some of them were equivalent. In particular, MINF-TS1 is the same as MINR-TS2, which results in the connection of the central part with the upper-right part via the TS2. 
+\begin{figure}[h]
+\begin{center}
+\includegraphics[scale=0.4]{Figures/pyrno2_rxn2.png}
+\end{center}
+\caption{Reaction network of the Pyr-\ce{NO2} system. The notation of the minima corresponding to the transition state $\tau$ has been simplified to MR$\tau$ and MF$\tau$. Primed labels represent structures generated by symmetry operations on the \ce{NO2} molecule with respect to the Pyrene plane. The central region (IRC$_{TS1}$) which has symmetry \(C_s\) is connected with three other regions of lower symmetry (\(C_1\)).}\label{rxntotal}
+\end{figure} 
+The primed labels in the different branches of the RXN make reference to structures generated by symmetry operations on the \ce{NO2} molecule with respect to the Pyrene plane, which are not directly identifiable by (vdW-)TSSCDS, and must be generated in an additional step. In Figure~\ref{permupyr} we have represented this situation for TS3 and TS5. Note that the corresponding TS3' and TS5' have also two minima associated with them, which are in turn equivalent to the unprimed minima.
+
+Back to the RXN discussion, in Figure~\ref{rxntotal} we can appreciate that the \emph{central} IRC$_{TS1}$ is also connected via TS4 with the MINR-TS4. The above is a consequence of the equality between the MINF-TS1 and MINF-TS4. At the same time, MINR-TS4 is equivalent with both minima from TS3 (see Figure~\ref{permupyr}), which adds the extra connection in the bottom branch of the RXN\@.
+\begin{figure}[h]
+\begin{center}
+\raisebox{-0.5\height}{\includegraphics[scale=0.4]{Figures/ts3_conf.png}}
+\raisebox{-0.5\height}{\includegraphics[scale=0.4]{Figures/ts5_conf.png}}
+\end{center}
+\caption{Equivalent structures generated by symmetry operations on the \ce{NO2} with respect to the Pyrene plane for the TS3 and TS5. In the case of the TS3, the connection with TS1 occurs with both the vdW-TSSCDS detected structure and the equivalent TS3'.}\label{permupyr}
+\end{figure}
+The remaining transition state (TS5) and its corresponding minima were more difficult to connect with the rest of the RXN\@. After a careful analysis it was concluded that an additional transition state was missing (labeled TS\(_{new}\) in Figure~\ref{rxntotal}). In order to identify this possible stationary point, we performed QST2~\cite{peng1993combining} calculations using the Gaussian software package. This method allows for finding a transition state starting from two pivotal minima. In our case, we explored all possible combinations between the minima connected through TS1, and those connected through TS5. 
+
+\begin{figure}[h]
+\begin{center}
+\includegraphics[scale=0.44]{Figures/irc_tsguess_ab.png}
+\includegraphics[scale=0.44]{Figures/irc_tsguess_both.png}
+\end{center}
+\caption{Intrinsic Reaction Coordinate profile for the TS\(_{new}\) structure at the (left) U$\omega$B97XD/cc-pVDZ Integral(SuperFineGrid) level of theory and (right) comparison with the corresponding profile at PM7 level of theory. }\label{pm7fails}
+\end{figure}
+
+The calculations were challenging to converge, and prove of it is the obtained IRC profile for the new transition state, which is represented in the left panel of Figure~\ref{pm7fails}. As we can see, the curve presents what looks like a cusp in the vicinity of the TS, which is an undesirable topographical discontinuity. To inquiry in the fact that the LL stage of (vdW-)TSSCDS did not detect the suitable guess for TS\(_{new}\), we recomputed (single-point calculations) the HL IRC points at the LL at the PM7 level of theory. The results of this previous step are represented in the right panel of Figure~\ref{pm7fails}, in which we have also included the HL curve. It can be seen that the semiempirical energy spikes in the vicinity of the TS and then forms a plateau. The above information confirms that 
+the missing TS can be attributed to a limitation of the PM7 method and not to a flaw in the (vdW-)TSSCDS algorithm.
+
+Finally, we would like to discuss a very interesting topographical feature that has been found in the obtained reaction network. It was mentioned before that the stationary points connected through the IRC$_{TS1}$ belong to the \(C_s\) symmetry group. By simple inspection of the remaining structures shows that they belong to the \(C_1\) symmetry group, i.e.\ the only symmetry operation is the identity \(E\). A point of PES that leads from reactants to products in a way in which is energetically favorable to break the symmetry is called branching point~\cite{baker1988algorithm}. A succinct graph-theory based representation of the RXN is presented in Figure~\ref{graphomol}, where we have represented the main topographical regions \(\mathcal{M}_{i}\) with \(i \in \{1,2,4,5\}\) of the PES\@. The regions in blue and red have \(C_s\) and \(C_1\) symmetry respectively.
+
+\begin{figure}[h]
+\begin{center}
+\includegraphics[scale=0.25]{Figures/graph.png}
+\end{center}
+\caption{Graph representation of the reaction network of the Pyr-\ce{NO2} system. The topographical regions \(\mathcal{M}_{i}\) with \(i \in \{1,2,4,5\}\) of the PES with \(C_s\) symmetry are represented in blue, whereas the ones with  \(C_1\) symmetry are represented in red. A curved arrow indicates that the two equivalent minima are connected through a TS.}\label{graphomol}
+\end{figure}
+
+
+\subsection{Partial conclusions}\label{conc}
+
+The present work constitutes, to the best of our knowledge, the first full dimensional (81D) theoretical study of the interaction between the Pyrene and the \ce{NO2} molecules. It is also one of the first production applications of the vdW-TSSCDS method~\cite{kopec2019vdw}, a powerful tool to efficiently and \emph{quasi} automatically sample the configuration space of a system and describe its corresponding topography. The method allowed us for finding all the stationary points of the system (transition states and minima) at the level of theory U$\omega$B97XD/cc-pVDZ Integral(SuperFineGrid).
+
+A total of 23 transition states were found at the PM7 low level of theory after the screening of equivalent structures, in a long exploration of the configuration space with 41629 random trajectories. The structures were reoptimized at the high level of theory of choice, with the highest available size of the DFT grid. After the screening of this results, 5 transition states were found. The corresponding IRC calculations were carried out at the same level of theory. Due to the shallow topography of the PES, these calculations were hard to converge, and a benchmark of all available algorithms was made. The ending structures of the IRC calculations were then optimized in search for minima and products, resulting this into 10 different minima. The interconnections between the minima and transition states constituting the reaction network was consequently studied. Some issues regarding the LL of theory (PM7) were detected in this last process.
+
+All the collected information suggest that the interactions in the Pyr-\ce{NO2} system are those of a typical van der Waals complex, and no signs of reactivity between the species was found at the selected level of theory. Additional studies should address the influence of light in these physisorbed species, and explore the possible pathways of formation of the HONO molecule from them. As a final step, some BSSE calculations were carried out at the same HL of theory using the Counterpoise correction. There is some evidence that for typical van der Waals complexes this sort of correction is of no use~\cite{sheng2011counterpoise}. We perform nevertheless some basic calculations on our system, and concluded that the topography of the BSSE surface differs from that of the uncorrected one, but owing to the tiny differences observed we cannot really conclude anything and further investigations are encouraged in this regard.
+
+\section{Reduced dimension PES (6D)}\label{reddim6d}
+
+In the previous section we presented the results of the topographical studies of the Pyr-\ce{NO2} system, and the obtained reaction network was described in detail. The next step of the study consisted in the development of the global PES surface of the system. Due to the size of the system at hand (81D), the above task was performed in a semirigid approach. The above assumption is sustained by the fact that the Pyrene geometry is almost not perturbed by the physisorbed \ce{NO2} molecule. In this conditions, the dimensionality of the system get effectively reduced to 9D. Moreover, for the majority of the stationary points, the geometry of the \ce{NO2} is also not considerably perturbed with respect to the isolated molecule (\emph{vide infra}), thus allowing us to further reduce the dimensionality to 6D. 
+
+\subsection{Coordinate transformation}\label{pyrtranpar}
+
+As suggested before, the development of the PES of the system has been carried out in reduced dimensionality. In order to transform the Cartesian coordinates (resulting from the HL optimizations) of the stationary points obtained with the Gaussian software package to a more convenient system of internal coordinates, a suitable code has been developed (see Appendix~\ref{apena}). 
+
+The transformation performed to pass from 81D to 9D has the form:
+\begin{equation}
+	\{x_i,y_i,z_i\}_{i \in [0..N]} \longleftrightarrow
+	\{x_i,y_i,z_i\}_{i \in [0..N-3]} \cup \{X_{cm},Y_{cm},Z_{cm},\alpha,\beta,\gamma, r_1,r_2,\theta\}
+	\label{transcoordeq}
+\end{equation}
+where N is the number of atoms, \(x_i,y_i,z_i\) are the Cartesian coordinates of the system, \(X_{cm},Y_{cm},Z_{cm}\) are the coordinates of the center of mass of the \ce{NO2} molecule, \(\alpha,\beta,\gamma\) are the corresponding Euler angles (reflecting the relative orientation of \ce{NO2} on Pyrene), and \(r_1,r_2,\theta\) its internal coordinates (distances \(ON\) and angle \(ONO\)). The unchanged \(3N-9\) coordinates correspond to the frozen Pyrene molecule. The implementation of the above transformation can be a tedious task, and an adequate convention must be established in order to obtain reversible results (see Appendix~\ref{apena} for a technical discussion). A graphical representation of the defined internal coordinates can be found in Figure~\ref{fig_trnascoord}.
+
+The obtained internal coordinates for each stationary point are represented in Table~\ref{table2}. In all cases the Pyrene molecule has been placed at the origin of coordinates with its principal axes of rotation matching the Cartesian canonical axes. As it can be seen, the transformation yields geometries with are located both above and bellow the Pyrene molecular plane (YZ). The Euler angles reflect the diversity of orientations of the \ce{NO2} already described in Section~\ref{minimminam}.
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.3]{Figures/coordtran_pyrno2.png}
+\end{center}
+\caption{Internal coordinates for the system PAH-\ce{NO2} in the reduced dimensionality frame 9D. The \(X_{cm},Y_{cm},Z_{cm}\) are the coordinates of the center of mass of the \ce{NO2} molecule, \(\alpha,\beta,\gamma\) are the corresponding Euler angles, and \(r_1,r_2,\theta\) its internal coordinates.}\label{fig_trnascoord}
+\end{figure}
+A very important aspect here is the comparison of the internal coordinates of the \ce{NO2} molecule with those obtained for the isolated molecule. The calculations at the level of theory U$\omega$B97XD/cc-pVDZ Integral(SuperFineGrid) showed that for latter case, the values are \(r_1=r_2=1.1905 \, \text{\AA}\) and \(\theta=2.3422\). For the majority of the stationary points, the aforementioned deviation occurs at the fourth decimal. In to quantify the effect of the dimensionality reduction (and its associated change in geometries), additional calculations were carried out by fixing the internal coordinates of \ce{NO2} to their equilibrium value on the vdW-TSSCDS computed stationary states. The RMSE error between all of the original energies and the ones obtained for the modified geometries was 7.44 \(cm^{-1}\) and the MAE was 7.08 \(cm^{-1}\).
+
+\begin{table}[h]
+\centering
+\resizebox{\textwidth}{!}{
+\begin{tabular}{cccccccccc}
+\toprule
+Structure & \(X_{cm}\) (\AA{}) & \(Y_{cm}\) (\AA{}) & \(Z_{cm}\) (\AA{}) & \(\alpha\) (rad)& \(\beta\) (rad)& \(\gamma\) (rad) & \(r_1\) (\AA{})& \(r_2\) (\AA{})& \(\theta\) (rad)\\
+\midrule
+MINR-TS1 & 3.1334  & 0.0005   & 1.115e-2  & 1.5708  & 0.0  & 0.2270  & 1.1906  &  1.1906  &  2.3403   \\    
+MINR-TS2 &3.1336   & 0.0  & -1.127e-2 & 1.5708  & 0.0      & 2.9137  & 1.1906  &  1.1906  &  2.3403   \\
+MINR-TS3 &3.1550   & 0.3844  & -1.0382 & -0.6597 & -1.940e-2  & 0.2626  & 1.1907  &  1.1908  &  2.3400 \\
+MINR-TS4&-3.1662  & 0.4331  & -0.9642  & -0.6272 & 2.371e-2  & -2.7235 & 1.1907  &  1.1907  &  2.3396  \\
+MINR-TS5& 3.0425  & -1.8919 & 1.2520  & 0.7618  & -7.317e-2 & -0.8893 & 1.1887  &  1.1919  &  2.3420  \\
+TS1      &-3.1145  & 0.0      & 0.0 & -1.5708 & 0.0      & 1.5703  & 1.1903  &  1.1903  &  2.3440  \\
+TS2      &-3.1830  & 0.2767  & -0.7883 & -0.9783 & 4.091e-2  & -0.3625 & 1.1907  &  1.1907  &  2.3393 \\ 
+TS3      &-3.2572  & -0.4143 & 0.0  & -3.1415 & 0.0      & -0.7970 & 1.1904  &  1.1904  &  2.3404  \\
+TS4     &-3.1933  & 0.2430  & -0.5648 & -0.9934 & 5.201e-2  & -2.6571 & 1.1906  &  1.1906  &  2.3398  \\
+TS5     &3.1340     & -2.31886 & 0.1582  & 1.5061   & 5.080e-3  & -2.2959 & 1.1889  &  1.1918  &  2.3423 \\ 
+MINF-TS1 &3.1335   & 0.0 & -1.123e-2 & 1.5709  & 0.0      & 2.9141  & 1.1906  &  1.1906  &  2.3403  \\
+MINF-TS2 &3.1550     & -0.3846 & -1.0385 & 0.6614  & -1.943e-2 & 2.8790  & 1.1907  &  1.1908  &  2.3400 \\ 
+MINF-TS3 & -3.1550 & -0.3838  & -1.0367 & -2.4848 & -1.946e-2 & -0.2634 & 1.1908  &  1.1907  &  2.3400  \\
+MINF-TS4& -3.1334 & 0.0  & 1.182e-2  & -1.5708 & 0.0      & -2.9143 & 1.1906  &  1.1906 &  2.3403  \\
+MINF-TS5& 3.1405  & -1.6451 & -0.8116 & 2.5751  & 7.640e-3  & 3.1016   & 1.1893  &  1.1915  &  2.3396 \\ 
+\bottomrule
+\end{tabular}}
+\caption{Internal coordinates of the Pyr-\ce{NO2} system at the reduced dimensionality 9D. First are represented the coordinates of the relative center of mass (\(X_{cm},Y_{cm},Z{cm}\)), then the Euler angles \(\alpha,\beta,\gamma\), and finally the internal coordinates of the \ce{NO2} molecule.}\label{table2}
+\end{table}
+
+The above findings validate the approximation of further reducing the dimensionality to 6D while still getting  physically meaningful results for the system of interest. In the following section we will discuss the development of the global intermolecular 6D PES\@. 
+
+\subsection{SRP-MGPF fit. Guess SOP-FBR parameter set}\label{srptuckerpyr}
+
+Once a suitable coordinate transformation has been established, we can proceed to generate the reference geometries needed for the optimization process. For this purpose, we used our many body-like expansion scheme (see Chapter~\ref{poten}) that allows for selecting the minimal number of geometries that ensures a converged optimization. The process (described in detail in our SRP-MGPF article~\cite{panades2019specific}) generates a total number of points \(N_{ref}\) which is computed as:
+\begin{equation}
+  N_{ref} = N_{RXN}\cdot \big[\sum^f_{i\in 1D} N^{(1D)}_i + \sum^f_{i\in 2D} N^{(2D)}_i + \ldots\big]+ rnd(fD) + \sum_{i}^{n_{TS}} N_i^{IRC} + \sum_{i}^{n_{asymp}} N^{(asymp)} +\ldots
+  \label{genegeosrpp}
+\end{equation}
+where $f$ is the number of DOF of the system, $N$ is the number of generated reference geometries of a given type, for example, $N^{(nD)}$ are grid points from a n-dimensional (D) grid obtained by varying D degrees of freedom while keeping \(f-D\) fixed in their equilibrium value, $N_i^{IRC}$ are the IRC points stemming from $TS_i$, $rnd(fD)$ are random structures sampled in the full-D configuration space, $n$ is the number of stationary points of a given type. The above scheme starts from the RXN elaborated by vdW-TSSCDS\@. In addition to the points generated by this scheme, a product grid reference tensor was also computed to be used by SOP-FBR\@. Here we should mention that the latter method is by no means restricted to this form of the reference geometries, but for the actual Python implementation it is very convenient (see Appendix~\ref{apenc}).
+
+The bounds of the one-dimensional grids were set in correspondence with the internal coordinates of the stationary points (see Table~\ref{table2}). Using the coordinate transformation software we generated a reference tensor of shape \(\prod_{i=1}^{6}5\), i.e.\ 15625 geometries computed at the level of theory U$\omega$B97XD/cc-pVDZ Integral(SuperFineGrid). The execution time of these calculation was roughly one week, under the conditions of a shared cluster. As discussed in Section IV of Reference~\cite{panades2020sop}, the first step of a SOP-FBR optimization is the obtention of a adequate guess parameter set. In our case, we will use the parameter set arising from a HOOI decomposition of a SRP PES\@. As discussed in Chapter~\ref{poten}, the latter can be performed with SRP-MGPF method. In fact, the usage of this method has double purpose here: to develop a PES that is ready to be used in nuclear quantum dynamics calculations, and to offer the aforementioned guess. 
+
+
+With this in mind, we proceeded to carry out the SRP optimization. The reference geometries in this case were taken as a mixture of the ones yielded by the process described in Equation~\ref{genegeosrpp}, and a sampling of the lower energies of the energy tensor. The semiempirical Hamiltonian reparametrized in this case was the PM7 one. Since the Pyrene molecule is kept frozen, only the parameters corresponding to the hydrogen, nitrogen, and oxygen atoms were optimized. Nevertheless, all of the two body parameters (including the ones from carbon) were optimized.  
+
+As a result of this, a set of 1071 points with energies ranging from \(0\) to 3346.92 \(cm^{-1}\) was optimized in a 16-core node. The CPU time of the optimization was 3.57 hours.  The obtained RMSE was 292.31 \(cm^{-1}\) and a validation set of 2451 points yielded a RMSE of 449.25 \(cm^{-1}\). In Figure~\ref{srpfitphig} we represent the correlation plot \(E_{ref}\) vs \(E_{srp}\) and the corresponding cumulative RMSE plot for this calculation. The above are preliminary results that reflect the good properties of the SRP fit, like the obtention of RMSE bellow the Chemical Accuracy threshold.
+
+\begin{figure}[h]
+\begin{center}
+\includegraphics[scale=0.44]{Figures/corr_srpt.png}
+\includegraphics[scale=0.44]{Figures/reg_srpt.png}
+\end{center}
+\caption{SRPTucker optimization results for the Pyr-\ce{NO2} system. (left) Correlation plot between the reference energies (\(E_{ref}\)) and the corresponding semiempirical one \(E_{srp}\) and (right) cumulative RMSE curve.}\label{srpfitphig}
+\end{figure}
+
+As can be appreciated in the correlation plot, the points are still dispersed with respect to the ideal straight line. The cumulative RMSE shows a typical profile for similar optimizations (see Chapter~\ref{poten}). The quality of the harmonic frequencies of the stationary points was also evaluated, showing that further improvements are needed since some of the geometries optimized to higher order saddle points. This issue can be circumvented by including the harmonic frequencies in the optimization objective function, as shown in Chapter~\ref{poten}. On the other hand, the obtained SRP PES can be used as a suitable guess for the SOP-FBR method. In addition, the reparametrized semiempirical Hamiltonian will be used to improve the transition state search with vdW-TSSCDS, since it is a more accurate representation of the topography of the PES~\cite{panadesprecook}.
+
+\section{Towards quantum dynamical studies on the Pyr-\ce{NO2} system}\label{gspyr4}
+
+The ground state distribution of the Pyr-\ce{NO2} can be obtained by relaxation of a wave packet with the MCTDH method (see Section~\ref{todomctdh}). In the previous section we discussed how the global PES is obtained with the SRP-MGPF method. This surface will be also used to generate a suitable guess for the SOP-FBR method, which yields a directly PES in the adequate mathematical form needed by MCTDH\@. To complete the Hamiltonian operator we only need the KEO, but as it was presented in Section~\ref{todomctdh}, this problem is relatively straightforward in this case. Since in our case the surface (Pyrene molecule) is frozen, the model of a triatomic molecule in a properly defined body-fixed frame (BF), and with center of mass \(G\) that is the origin of a Space-Fixed frame (SF)~\cite{gat09:1}, suffices to describe our problem.
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.4]{Figures/keotria.png}
+\end{center}
+\caption{Body-fixed frame (BF) associated to the \ce{ABC} molecule. The position vectors \(\mathbf{R}\) and \(\mathbf{r}\) are oriented in a way that \(z^{BF}\) is parallel to \(\mathbf{R}\), and the \(xy\) plane of the BF is parallel to the plane generated by \(\mathbf{R}\) and \(\mathbf{r}\).}\label{figkeotria}
+\end{figure} 
+If we represent the triatomic molecule ABC with two relative valence position vectors \(\mathbf{R}\) and \(\mathbf{r}\), and three valence coordinates \(R\), \(r\) and \(\alpha\); and let the BF to be oriented in a manner that \(z^{BF}\) is parallel to \(\mathbf{R}\), and the \(xy\) plane of the BF is parallel to the plane generated by \(\mathbf{R}\) and \(\mathbf{r}\) as represented in Figure~\ref{figkeotria}; then it can shown that the quantum mechanical KEO of the system (\(\hat{T}\)) has the form~\cite{gatti1998vector}: 
+\begin{multline}
+  2\hat{T} = \frac{\hat{p}_R^{\dagger}\hat{p}_R}{M} + \frac{\hat{p}_r^{\dagger}\hat{p}_r}{m} + \frac{2\hat{p}_R\hat{p}_r}{\mu}\cos{\alpha} 
+  - \frac{2}{\mu} \biggl( \frac{\hat{p}_R}{r} + \frac{\hat{p}_r}{R}\biggl)\sin{\alpha \hat{\ell}^{BF}_y} \\
+  + \biggl( \frac{1}{MR^2} + \frac{1}{mr^2} - \frac{2\cos{\alpha}}{Rr\mu} \biggl)[\hat{\ell}^2]_{E2}
+  + \frac{2\hat{p}_r}{\mu}R\sin{\alpha\hat{\mathbf{J}}_y^{BF}}\\
+  + \frac{2\sin{\alpha}}{Rr\mu}[(\hat{\ell}^{BF}_x - \hat{\mathbf{J}}_x^{BF})\hat{\mathbf{J}}_z^{BF}+i\hbar\hat{\ell}^{BF}_y]
+  -2\biggl( \frac{1}{MR^2}-\frac{\cos{\alpha}}{Rr\mu} \biggl)[\hat{\mathbf{J}}\cdot\hat{\ell}]_{BF} 
+  + \frac{[\hat{\mathbf{J}}^2]_{BF}}{MR^2}
+  \label{keotria}
+\end{multline}
+In the above equation all quantities with the hat (\(\hat{}\)) symbol are operators whose Hermitian adjoint is labeled with a dagger (\(\dagger\)) symbol. The ordering of this operators must be respected when computing the corresponding matrix elements. The \(\hat{p}_R\) and \(\hat{p}_r\) are the momentum operators, \(\hat{\mathbf{L}}\) and \(\hat{\ell}\) are the angular momentum operators associated with the position vectors \(\mathbf{R}\) and \(\mathbf{r}\) respectively, \(\mathbf{J}\) is the total angular momentum of the system. The subscript \(E_2\) refers to the frame obtained after the first two Euler rotations. The masses of the individual atoms \(m_A\), \(m_B\) and \(m_C\) are used to generate the reduced masses:
+\begin{align}
+\begin{split}
+M &= \frac{m_A m_B}{m_A + m_B}\\
+m &= \frac{m_B m_C}{m_B + m_C}
+\end{split}
+\end{align} 
+The value of \(\mu=m_B\) for the valence vectors in Figure~\ref{figkeotria}. Analytical matrix elements have been developed for the operator in Equation~\ref{keotria}. For more details about the subject, the reader is invited to consult the excellent material by Gatti \emph{et al.}~\cite{gatti1998vector,gat09:1}. The above KEO is fully supported by the Heidelberg implementation of the MCTDH algorithm~\cite{mctdh:package}.
+
+To summarize, the next steps in oder to fulfill the objectives established in Section~\ref{goalsthe} are the development of the aforementioned SOP-FBR PES, and the obtention of the GS distribution of the system using MCTDH\@. As we have seen in this chapter, the conditions are already created to accomplish this tasks, whose results were not included in the present manuscript due to time reasons. With the GS distribution in hand and the corresponding ZPE, the absorption processes of \ce{NO2} over Pyrene will be completely characterized. The electronic absorption spectrum will be computed as the GS-weighted sum of the individual electronic excitations of the stationary points. The vertical excitations will be obtained with the DMRG method~\cite{wouters2014density}, in collaboration with Morgane Vacher from the University of Nantes. 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% The "Acknowledgement" section can be given in all manuscript
+%% classes.  This should be given within the "acknowledgement"
+%% environment, which will make the correct section or running title.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{acknowledgement}
+
+The authors thank \ldots
+
+\end{acknowledgement}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% The same is true for Supporting Information, which should use the
+%% suppinfo environment.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{suppinfo}
+
+Supporting information if available.
+
+\end{suppinfo}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% The appropriate \bibliography command should be placed here.
+%% Notice that the class file automatically sets \bibliographystyle
+%% and also names the section correctly.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\bibliography{refers}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% The "tocentry" environment can be used to create an entry for the
+%% graphical table of contents.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%\begin{tocentry}
+%\end{tocentry}
+
+\end{document}

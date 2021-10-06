@@ -1,0 +1,12 @@
+  program test
+    implicit none
+    integer :: k
+
+    do k = 1, 10
+      print *, k 
+   end do
+
+   do 15 k = 1, 10
+15    print *, k, t
+
+  end program test

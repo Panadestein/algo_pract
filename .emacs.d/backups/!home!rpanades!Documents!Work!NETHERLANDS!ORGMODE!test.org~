@@ -1,0 +1,61 @@
+* Exploring Orb-mode
+
+** Tables
+
+|  n |  n^2 |     cos(n) |   log(n)   |
+|----+------+------------+------------|
+|  1 |    1 | 0.99984770 |          0 |
+|  2 |    4 | 0.99939083 | 0.69314718 |
+| 33 | 1089 | 0.83867057 |  3.4965076 |
+| 44 | 1936 | 0.71933980 |  3.7841896 |
+| .1 | 0.01 | 0.99999848 | -2.3025851 |
+#+TBLFM: $2=$1^2::$3=cos($1)::$4=log($1)
+
+** Code blocks
+
+This code blocks can be triggered by TAB-expanding the ~<s~ string
+
+#+begin_src python
+import numpy as np
+
+print(np.random.uniform(-1, 1, 10))
+#+end_src
+
+#+RESULTS:
+: None
+
+#+begin_src emacs-lisp
+(message "Hello LOOO ooo")
+#+end_src
+
+#+RESULTS:
+: Hello LOOO ooo
+
+#+begin_src C
+int main() {
+printf("%s", "Hello");
+return 0;
+}
+#+end_src
+
+#+RESULTS:
+: Hello
+
+#+begin_src gnuplot :export={code, results} :file graph.png
+f(x) = x**2
+plot f(x)
+#+end_src
+
+#+RESULTS:
+
+** Latex stuff
+
+Latex is rendered putting the cursor on the source and issuing ~C-c C-x C-l~
+
+$i \hbar \frac{\partial}{\partial t}\Psi(\mathbf{r},t) = \hat H \Psi(\mathbf{r},t)$
+
+** HTML export
+
+   Simply execute the ~org-html-export-to-html~ command in the minibuffer. 
+
+

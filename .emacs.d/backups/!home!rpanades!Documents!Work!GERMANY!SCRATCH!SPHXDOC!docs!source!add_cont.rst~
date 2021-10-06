@@ -1,0 +1,50 @@
+Adding new content quick startup
+================================
+
+Welcome to the source code of the Wiki of the Golze Group. These project uses `Sphinx <https://www.sphinx-doc.org/en/master/>`_ to authomatically generate the documentation. As such, new content is added in the `reStructuredText <https://www.sphinx-doc.org/en/master/usage/restructuredtext/basics.html>`_ markup language. Here are two ways in which you could contribute to this wiki.
+
+The standard way
+----------------
+
+If you clone the repo to edit files locally you will need the Sphinx Python 3 module to be able to compile the html (or alternatively latex) files. You can intall Sphinx with **pip**:
+
+.. code-block:: bash
+
+    pip3 install -U sphinx
+
+
+More information on installing Sphinx `here <https://www.sphinx-doc.org/en/master/usage/installation.html>`_.
+
+Create the new documentation files (*e.g.* newdoc.rst) inside the **source** directory. Then modify the file **source/index.rst** to add the new documentation file without the extension:
+
+.. code-block:: rest
+
+    toctree::
+       :maxdepth: 2
+       :caption: Contents
+       :titlesonly:
+   
+       fhi_aims
+       general_tud
+       newdoc
+
+After editing, compile to HTML with:
+
+.. code-block:: bash
+
+   make html
+
+
+You can preview the compilation results with the Python 3 builtin module `http.server <https://docs.python.org/3/library/http.server.html>`_. The simplest usage of this module is:
+
+.. code-block:: bash
+
+    cd build/html
+    python -m http.server
+
+which runs a local server in the default address **0.0.0.0:8000**.
+
+The quick and dirty way
+-----------------------
+
+In alternative to the previous procedure, one could simply add new .rst files in the **source** directory and preview them in the GitLab web interface, which renders the reStructuredText by default. In this case, you will also need to edit the **source/index.rst** and add the name of the new documentation file.

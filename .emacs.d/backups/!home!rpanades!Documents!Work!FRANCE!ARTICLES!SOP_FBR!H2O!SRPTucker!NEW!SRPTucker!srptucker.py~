@@ -1,0 +1,179 @@
+"""
+The present module decomposes a reference tensor in Tucker form
+using the Tensorly library
+"""
+import re
+from subprocess import call
+import numpy as np
+from scipy.stats import norm
+from scipy.optimize import minimize as mini
+import scipy.constants as sc
+import nlopt
+import tensorly as tl
+import tensorly.decomposition as tldec
+import h2o_pot as pot
+
+# Constants
+
+AUCM = sc.physical_constants['hartree-inverse meter relationship'][0] * 1e-2
+AUANG = sc.physical_constants['atomic unit of length'][0] * 1e10
+DEGRAD = np.pi / 180
+GDIM = np.array([5, 5, 5])
+#  WEIGHT = 100.0
+
+# Grid
+
+R1_0 = 1.81
+R2_0 = 1.81
+TH_0 = 1.82
+
+R1 = norm.ppf([0.05, 0.10, 0.25, 0.30, 0.35, 0.45, 0.50,
+               0.65, 0.70, 0.75, 0.80, 0.85, 0.90, 0.95, 0.99],
+              loc=R1_0, scale=0.132)
+R2 = norm.ppf([0.05, 0.10, 0.25, 0.30, 0.35, 0.45, 0.50,
+               0.65, 0.70, 0.75, 0.80, 0.85, 0.90, 0.95, 0.99],
+              loc=R2_0, scale=0.132)
+TH = norm.ppf([0.05, 0.10, 0.25, 0.30, 0.35, 0.45, 0.50,
+               0.65, 0.70, 0.75, 0.80, 0.85, 0.90, 0.95, 0.99],
+              loc=TH_0, scale=0.132)
+
+#  R1_0 = 1.8102116343453211744
+#  R2_0 = 1.8102116343453211744
+#  TH_0 = 1.8238154598097864323
+#  RMIN, RMAX = 1.45, 2.45
+#  TMIN, TMAX = 1.14, 5.14
+
+#  R1 = np.linspace(RMIN, RMAX, 15)
+#  R2 = np.linspace(RMIN, RMAX, 15)
+#  TH = np.linspace(1.14, np.pi, 15)
+
+#  R1_M, R2_M, TH_M = np.meshgrid(R1, R2, TH, indexing='ij')
+
+#  E_AB = np.vectorize(pot.surfh2o)(R1_M, R2_M, TH_M) * AUCM
+#  np.savetxt('energ', E_AB.flatten())
+#  np.vectorize(print)(R1_M, R2_M, TH_M, file=open('geos', 'a'))
+
+np.savetxt("coord_0", R1)
+np.savetxt("coord_1", R2)
+np.savetxt("coord_2", TH)
+
+raise SystemExit
+
+DATA = np.loadtxt('ref_ab')
+E_AB = DATA[:, -1]
+G_AB = DATA[:, :-1]
+
+#  CORA_REF = np.loadtxt('./core_ref').reshape(GDIM)
+#  EVEC_0_REF = np.loadtxt('./evec_0_ref')
+#  EVEC_1_REF = np.loadtxt('./evec_1_ref')
+#  EVEC_2_REF = np.loadtxt('./evec_2_ref')
+#  MATS_REF = [EVEC_0_REF, EVEC_1_REF, EVEC_2_REF]
+#  NPARMAT = EVEC_0_REF.shape[0] * 3
+#  NPARMCORE = np.prod(GDIM)
+#  NPARMTOT = NPARMAT + NPARMCORE
+
+# Semiempirical surface and target function
+
+
+def rmse(pars):
+    """RMSE target function"""
+
+    regenpar = np.concatenate((NAMES, pars[:, None]), axis=1)
+    np.savetxt('mopac_params', regenpar, fmt="%s")
+
+    call(["./MOPACMINE/MOPAC2016.exe", "inp_semp/geo_ref.mop"])
+
+    e_srp = []
+    with open('./inp_semp/geo_ref.out', "r") as file:
+        for line in file:
+            if re.search("TOTAL ENERGY", line):
+                line = line.split()
+                energy = float(line[3]) * 8065.5
+                e_srp.append(energy)
+
+    e_srp = np.array(e_srp)
+    e_srp = e_srp - e_srp[0]
+
+    try:
+        cora, mats = tldec.tucker(e_srp.reshape((15, 15, 15)), rank=GDIM)
+        np.savetxt("core", cora.flatten())
+
+        #  delta_mat = 0.0
+        #  delta_core = 0.0
+
+        for idx, mat in enumerate(mats):
+            np.savetxt(f"evec_{idx}", mat)
+        #      delta_mat += np.sum((mat - MATS_REF[idx]) ** 2)
+
+        #  delta_core = np.sum((cora - CORA_REF) ** 2)
+        #  rmse = np.sqrt((delta_mat * WEIGHT + delta_core) / NPARMTOT)
+        rmse = np.sqrt(((e_srp - E_AB) ** 2).mean())
+    except ValueError:
+        rmse = np.nan
+
+    with open("rmse", "a") as file_target:
+        file_target.write(str(rmse) + "\n")
+
+    return rmse
+
+
+# Initial parameter array
+
+PARAMSFULL = np.loadtxt('opt_params', dtype=str)
+#  PARAMSFULL = np.loadtxt('parameter_pm3', dtype=str)
+NAMES = PARAMSFULL[:, :2]
+PARAMS = PARAMSFULL[:, 2].astype(float)
+
+# Create mopac files
+
+with open("./inp_semp/geo_ref.mop", 'w') as mopinp:
+    for (r1, r2, th) in G_AB:
+        mopinp.write("pm3 charge=0 1scf EXTERNAL=mopac_params OUTPUT\n")
+        mopinp.write("Dumb title rule\n")
+        mopinp.write(" \n")
+        mopinp.write("H\n")
+        mopinp.write("O  " + str(r1 * AUANG) + " 1 " + "\n")
+        mopinp.write("H  " + str(r2 * AUANG) + " 1 " +
+                     str(th / DEGRAD) + " 1 0.0 0  2 1 0" +
+                     "\n")
+        mopinp.write(" \n")
+
+# Final test run
+
+rmse(PARAMS)
+raise SystemExit
+
+# Optimization Scipy
+
+#  PAROPT = mini(rmse, PARAMS, method='Powell', options={'maxiter': 7000})
+#  RESER = PAROPT.fun
+#  PARAMS = PAROPT.x
+#  REGEN = np.concatenate((NAMES, PARAMS[:, None]), axis=1)
+#  np.savetxt('opt_params', REGEN, fmt="%s")
+
+# Optimization NLopt
+
+PDEV = 0.3
+BLOW = np.zeros(PARAMS.shape[0])
+BUPP = np.zeros(PARAMS.shape[0])
+
+for idx, pval in enumerate(PARAMS):
+    if pval >= 0:
+        BUPP[idx] = pval * (1.0 + PDEV)
+        BLOW[idx] = pval * (1.0 - PDEV)
+    else:
+        BUPP[idx] = pval * (1.0 - PDEV)
+        BLOW[idx] = pval * (1.0 + PDEV)
+
+MAXITER = 3000
+
+OPT_OBJ = nlopt.opt(nlopt.G_MLSL_LDS, PARAMS.shape[0])
+OPT_OBJ.set_local_optimizer(nlopt.opt(nlopt.LN_BOBYQA, PARAMS.shape[0]))
+OPT_OBJ.set_lower_bounds(BLOW)
+OPT_OBJ.set_upper_bounds(BUPP)
+OPT_OBJ.set_min_objective(rmse)
+OPT_OBJ.set_maxeval(MAXITER)
+
+PARAMSFIN = OPT_OBJ.optimize(PARAMS)
+REGEN = np.concatenate((NAMES, PARAMSFIN[:, None]), axis=1)
+np.savetxt('opt_params', REGEN, fmt="%s")

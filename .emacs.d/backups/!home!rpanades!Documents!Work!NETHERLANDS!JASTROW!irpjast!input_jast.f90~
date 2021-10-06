@@ -1,0 +1,5 @@
+subroutine rdec (nelec, elec_coord)
+  integer, intent(in) :: nelec
+  double precision, dimension(nelec, 3), intent(inout) :: elec_coord
+  elec_coord = elec_coord + 1.0d0
+end subroutine rdec

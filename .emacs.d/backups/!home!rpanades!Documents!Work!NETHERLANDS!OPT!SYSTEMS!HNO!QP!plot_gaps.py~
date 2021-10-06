@@ -1,0 +1,30 @@
+"""Creates plots with the output from QP"""
+import numpy as np
+import matplotlib.pyplot as plt
+
+H2EV = 27.211386245988
+
+d0 = np.loadtxt('deltae_30000_005_1_1', skiprows=0)
+d1 = np.loadtxt('deltae_30000_005_1_1_var_rpt2', skiprows=0)
+d2 = np.loadtxt('deltae_30000_005_6_4_var_rpt2', skiprows=0)
+d3 = np.loadtxt('deltae_300000_01_1_1_var_rpt2', skiprows=0)
+d4 = np.loadtxt('deltae_300000_05_1_1_var_rpt2', skiprows=0)
+d5 = np.loadtxt('cas129_hno.ezfio.2.delta_e.conv', skiprows=2)
+d6 = np.loadtxt('cas129_hno.ezfio.3.delta_e.conv', skiprows=2)
+d7 = np.loadtxt('./energs_three')
+
+#  plt.plot(d0[1:, 0], d0[1:, 1] * H2EV, '.-')
+#  plt.plot(d1[1:, 0], d1[1:, 1] * H2EV, '.-')
+#  plt.plot(d2[1:, 0], d2[1:, 1] * H2EV, '.-')
+#  plt.plot(d3[1:, 0], d3[1:, 1] * H2EV, '.-')
+#  plt.plot(d4[1:, 0], d4[1:, 1] * H2EV, '.-')
+plt.plot(d5[:, 0], d5[1:, 1] * H2EV, '.-')
+plt.plot(d6[:, 0], d6[1:, 1] * H2EV, '.-')
+
+plt.hlines(4.397, 0, 3.5e5)
+
+plt.legend([r's=0.1 w=(1., 1.) var+rPT2', r's=0.5 w=(1., 1.) var+rPT2'])
+plt.xlabel(r'$N_{dets}$')
+plt.ylabel(r'E (eV)')
+
+plt.show()

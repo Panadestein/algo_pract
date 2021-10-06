@@ -1,0 +1,30 @@
+* Instructions to create CHAMP workflow
+
+** Steps
+
+*** DONE Create repository in TREX's GitHub
+
+*** TODO Create git submodule
+
+    #+begin_src shell
+    git submodule add https://github.com/filippi-claudia/champ.git
+    #+end_src
+
+*** TODO Create CHAMP example input and output to the repository
+
+    We could also upload a tarball with the example (CN3?)
+
+*** TODO Include compilation instructions in README.md
+
+    This one is easy, we could use the same of CHAMP
+
+** Comments
+
+   To be able to clone a repository that contains submodules we use an
+extra flag
+
+   #+begin_src shell
+   git clone --recurse-submodules https://github.com/TREX-CoE/workload_champ
+   #+end_src
+
+   I believe we will use this only for testing.

@@ -1,0 +1,110 @@
+"""
+Plots QMC energies obtained with CHAMP.
+"""
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Constants
+
+H2EV = 27.211386245988
+
+# Load energies from file
+
+E_SA2 = np.loadtxt('./energ_hno_cas22.txt')
+E_ORTHO = np.loadtxt('./energ_hno_cas129.txt')
+
+EFF_ORTHO = np.loadtxt('./eff_psb3_ortho.txt', usecols=(3,))
+EFF_SA2 = np.loadtxt('./eff_psb3_sa2.txt', usecols=(3,))
+
+# Plot energies with error bar
+
+fig, axs = plt.subplots()
+plt.title(f"Run {len(E_ORTHO[:, 0])//2} iterations on 120 cores")
+plt.xlabel(r'Step')
+plt.ylabel(r'Energy (au)')
+axs.errorbar(np.arange(len(E_ORTHO[:, 0])/2),
+             E_ORTHO[:, 0].reshape(-1, 2)[:, 0],
+             yerr=E_ORTHO[:, 1].reshape(-1, 2)[:, 0],
+             linestyle="-", fmt='b.',
+             ecolor='red', capsize=3)
+#  axs.errorbar(np.arange(len(E_SA2[:, 0])/2),
+#               E_SA2[:, 0].reshape(-1, 2)[:, 0],
+#               yerr=E_SA2[:, 1].reshape(-1, 2)[:, 0],
+#               linestyle="-", fmt='g.',
+#               ecolor='red', capsize=3)
+axs.errorbar(np.arange(len(E_ORTHO[:, 0])/2),
+             E_ORTHO[:, 0].reshape(-1, 2)[:, 1],
+             yerr=E_ORTHO[:, 1].reshape(-1, 2)[:, 1],
+             linestyle="-", fmt='b.',
+             ecolor='red', capsize=3)
+#  axs.errorbar(np.arange(len(E_SA2[:, 0])/2),
+#               E_SA2[:, 0].reshape(-1, 2)[:, 1],
+#               yerr=E_SA2[:, 1].reshape(-1, 2)[:, 1],
+#               linestyle="-", fmt='g.',
+#               ecolor='red', capsize=3)
+
+#  plt.legend(['SR-ORTHO', 'SA2'])
+plt.legend(['SR-ORTHO'])
+plt.show()
+
+# Compute energy gap
+
+DE_ORTHO = np.array(list(map(lambda x: (x[1] - x[0]) * H2EV,
+                             E_ORTHO[:, 0].reshape(-1, 2))))
+EDE_ORTHO = np.array(list(map(lambda x: (np.sqrt(x[1] ** 2 + x[0] ** 2))
+                              * H2EV, E_ORTHO[:, 1].reshape(-1, 2))))
+DE_SA2 = np.array(list(map(lambda x: (x[1] - x[0]) * H2EV,
+                           E_SA2[:, 0].reshape(-1, 2))))
+EDE_SA2 = np.array(list(map(lambda x: (np.sqrt(x[1] ** 2 + x[0] ** 2))
+                            * H2EV, E_SA2[:, 1].reshape(-1, 2))))
+
+# Plot energy gap
+
+fig, axs = plt.subplots()
+plt.title(f'Run {len(E_ORTHO[:, 0])//2} iterations on 120 cores')
+plt.xlabel(r'Step')
+plt.ylabel(r'$\Delta$E (eV)')
+axs.errorbar(np.arange(len(DE_ORTHO)), DE_ORTHO,
+             yerr=EDE_ORTHO, linestyle="-", fmt='b.',
+             ecolor='red', capsize=3)
+#  axs.errorbar(np.arange(len(DE_SA2)), DE_SA2,
+#               yerr=EDE_SA2, linestyle="-", fmt='g.',
+#               ecolor='orange', capsize=3)
+#  plt.legend(['SR-ORTHO', 'SA2'])
+plt.legend(['SR-ORTHO'])
+plt.show()
+
+# Plot Efficiency
+
+#  fig, axs = plt.subplots()
+#  plt.title('Run 40 iterations on 120 cores')
+#  plt.xlabel(r'Step')
+#  plt.ylabel(r'Efficiency')
+#  axs.errorbar(np.arange(len(EFF_ORTHO)/2),
+#               EFF_ORTHO.reshape(-1, 2)[:, 0],
+#               yerr=None, linestyle="-", fmt='b.')
+#  axs.errorbar(np.arange(len(EFF_SA2)/2),
+#               EFF_SA2.reshape(-1, 2)[:, 0],
+#               yerr=None, linestyle="-", fmt='g.')
+#  axs.errorbar(np.arange(len(EFF_ORTHO)/2),
+#               EFF_ORTHO.reshape(-1, 2)[:, 1],
+#               yerr=None, linestyle="-", fmt='b.')
+#  axs.errorbar(np.arange(len(EFF_SA2)/2),
+#               EFF_SA2.reshape(-1, 2)[:, 1],
+#               yerr=None, linestyle="-", fmt='g.')
+#  plt.legend(['ORTHO', 'SA2'])
+#  plt.show()
+
+# Print debugging info
+
+print("GAP ORTHO")
+print(DE_ORTHO)
+print("ERROR BAR ORTHO")
+print(EDE_ORTHO)
+#  print("GAP SA2")
+#  print(DE_SA2)
+#  print("ERROR BAR SA2")
+#  print(EDE_SA2)
+
+#  print("FINAL GAP")
+#  print(np.mean(DE_ORTHO[-10:]))

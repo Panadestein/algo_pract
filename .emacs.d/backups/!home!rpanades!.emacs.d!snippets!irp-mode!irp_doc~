@@ -1,0 +1,31 @@
+# -*- mode: snippet -*-
+# name: BEGIN_PROVIDER ... END_PROVIDER 
+# key: bp
+# --
+BEGIN_PROVIDER [${1:integer}, ${2:var}]
+    $0
+END_PROVIDER
+
+
+# -*- mode: snippet -*-
+# name: BEGIN_DOC ... END_DOC
+# key: bc
+# --
+BEGIN_DOC
+! $0
+END_DOC
+
+
+# -*- mode: snippet -*-
+# name: ASSERT 
+# key: ass
+# --
+ASSERT ($0)
+
+# -*- mode: snippet -*-
+# name: BEGIN_SHELL ... END_SHELL 
+# key: bsh
+# --
+BEGIN_SHELL [ ${1:/bin/bash} ]
+    $0
+END_SHELL

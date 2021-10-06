@@ -1,0 +1,83 @@
+"""Parses Quantum Package output to gather variance
+   PT2 and energy values for each state"""
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Constants definition
+
+NSTATES = 2
+REFGAP = 4.397 / 27.211386245988
+STRVAR = "Variance        ="
+PT2STR = "PT2             ="
+DETSTR = "Summary at N_det ="
+ENESTR = "# E "
+FILS = ["fci_11_5000", "fci_64_5000", "fci_5545_5000",
+        "fci_4555_5000", "fci_46_5000", "fci_11_1500",
+        "fci_11_300"]
+
+fig, axs = plt.subplots(4)
+
+for fil in FILS:
+    var = []
+    pt2 = []
+    det = []
+    ene = []
+
+    # File parsing
+
+    with open(fil, 'r') as infil:
+        for line in infil:
+            if STRVAR in line:
+                var.append(float(line.split()[2]))
+            elif PT2STR in line:
+                pt2.append(float(line.split()[2]))
+            elif DETSTR in line:
+                det.append(float(line.split()[4]))
+            elif ENESTR in line:
+                if len(line.split()) > 3:
+                    ene.append([float(line.split()[2]),
+                                float(line.split()[3])])
+
+    vara = np.array(var)
+    pt2a = np.array(pt2)
+    deta = np.array(det)
+    enea = np.array(ene)
+
+    vara = vara.reshape(-1, NSTATES)
+    pt2a = pt2a.reshape(-1, NSTATES)
+
+    # Compute gaps
+
+    dvar = []
+    dpt2 = []
+    dene = []
+    for idx in range(NSTATES - 1):
+        dvar.append(vara[:, idx + 1] - vara[:, 0])
+        dpt2.append(pt2a[:, idx + 1] - pt2a[:, 0])
+        dene.append(enea[:, idx + 1] - enea[:, 0])
+
+    # Plot variance, PT2 and energy gaps
+
+    for idx, dval in enumerate(dvar):
+        color = next(axs[0]._get_lines.prop_cycler)['color']
+        for idy in range(NSTATES):
+            axs[0].plot(deta, enea[:, idy], '.-', color=color)
+        axs[1].plot(deta, dval, '.-')
+        axs[2].plot(deta, dpt2[idx], '.-')
+        axs[3].plot(deta, dene[idx], '.-')
+
+    plt.xlabel(r'$N_{det}$')
+    axs[0].set(ylabel=r'$E (au)$')
+    axs[1].set(ylabel=r'$\Delta \sigma^2 (au)$')
+    axs[2].set(ylabel=r'$\Delta PT2 (au)$')
+    axs[3].set(ylabel=r'$\Delta E (au)$')
+    handles = axs[3].get_lines()
+    fig.legend(handles, FILS, loc='upper center')
+
+# Plot horizontal lines with reference values
+
+axs[1].axhline(y=0.0, color='k', linestyle='-.')
+axs[2].axhline(y=0.0, color='k', linestyle='-.')
+axs[3].axhline(y=REFGAP, color='k', linestyle='-.')
+
+plt.show()

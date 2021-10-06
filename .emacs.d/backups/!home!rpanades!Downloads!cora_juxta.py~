@@ -1,0 +1,29 @@
+"""Parses an excel file and analyses data"""
+import more_itertools as mit
+import numpy as np
+import pandas as pd
+
+# Define pattern
+
+PATTERN = ["tvI!", "sbR+"]
+NCON = len(PATTERN)
+
+# Load the Excel
+
+DATA_EXCEL = pd.read_excel("./sco.xlsx", header=2, usecols=(0, 1, 2, 3, 4))
+
+# Process data
+
+LST = list(DATA_EXCEL['Codes'])
+DATA_PAT = DATA_EXCEL[list(map(lambda x: x in PATTERN, LST))]
+
+GROUPS = []
+for group in mit.consecutive_groups(DATA_PAT['no.']):
+    GROUPS.append(list(group))
+
+GROUPS_N = []  # Here n is the amount of consecutive elements
+for el in GROUPS:
+    if len(el) == NCON:
+        GROUPS_N.append(el)
+
+INDEXES = np.array(GROUPS_N, dtype=np.int).flatten()

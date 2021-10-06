@@ -1,0 +1,11 @@
+* Equation:
+
+** Cumulant
+  pi* exp(-0.5*((x-3.5)/.8)**2) + pi*6* exp(-0.5*((x-8)/.3)**2)+1.0
+** No cumulant
+  0.5* exp(-0.5*((x-3.5)/.9)**2) + pi*5.5* exp(-0.5*((x-8)/.4)**2)+0.5
+
+* Parametric curves for electromagnetic interaction:
+
+  t+cos(0.2*t)
+  10*sin(0.2*t)

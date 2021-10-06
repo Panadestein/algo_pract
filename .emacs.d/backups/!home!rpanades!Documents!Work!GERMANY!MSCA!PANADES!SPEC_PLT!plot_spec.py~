@@ -1,0 +1,17 @@
+"""Plot XPS spectra from file"""
+import numpy as np
+import plotly.express as px
+
+# Load sopectrum data
+
+BG = np.loadtxt('./background_sort.txt')
+BLUE = np.loadtxt('./blue_line_sort.txt')
+PINK = np.loadtxt('./pink_line_sort.txt')
+YELL = np.loadtxt('./yellow_line_sort.txt')
+GRAY = np.loadtxt('./gray_line_sort.txt')
+EXPE = np.loadtxt('./experimental.txt')
+
+# Plot spectrum
+
+px.line(x=BLUE[:, 0], y=BLUE[:, 1])
+px.show()

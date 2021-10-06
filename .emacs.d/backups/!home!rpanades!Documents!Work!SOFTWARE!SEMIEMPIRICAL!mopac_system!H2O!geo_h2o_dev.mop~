@@ -1,0 +1,7 @@
+pm7 charge=0 1scf hcore aux large fock density vectors iter debug
+Dumb title rule
+ 
+O 0.00000000, 0.00000000, 0.04851804
+H 0.75300223, 0.00000000, -0.51923377
+H -0.75300223, 0.00000000, -0.51923377
+

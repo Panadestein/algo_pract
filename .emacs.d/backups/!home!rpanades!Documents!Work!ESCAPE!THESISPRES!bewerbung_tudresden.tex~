@@ -1,0 +1,118 @@
+\documentclass[12pt]{beamer}
+
+\usetheme{Oxygen}
+\usepackage{thumbpdf}
+\usepackage{wasysym}
+\usepackage{xcolor}
+\usepackage{ucs}
+\usepackage[utf8]{inputenc}
+\usepackage{pgf,pgfarrows,pgfnodes,pgfautomata,pgfheaps,pgfshade}
+\usepackage{verbatim}
+\usepackage{ragged2e}
+\usepackage{changepage}
+\usepackage{lmodern}
+\usepackage{relsize}
+\usepackage{bm}
+\usepackage{tikz}
+\usepackage[ruled,vlined]{algorithm2e}
+\usetikzlibrary{fit,shapes.geometric}
+\tikzset{every overlay node/.style={draw=black,anchor=north west,
+  },
+}
+\def\tikzoverlay{%
+   \tikz[baseline,overlay]\node[every overlay node]
+}%
+\newcounter{nodemarkers}
+\newcommand<>\circletext[1]{%
+    \tikz[overlay,remember picture] 
+    \node (marker-\arabic{nodemarkers}-a) at (0,1.5ex) {};%
+    #1%
+    \tikz[overlay,remember picture]
+    \node (marker-\arabic{nodemarkers}-b) at (0,0){};%
+    \tikz[overlay,remember picture,inner sep=2pt]
+    \node#2[draw,ellipse,red,fit=(marker-\arabic{nodemarkers}-a.center) (marker-\arabic{nodemarkers}-b.center)] {};%
+    \stepcounter{nodemarkers}%
+}
+
+\newcommand\blfootnote[1]{%
+\begingroup
+\renewcommand\thefootnote{}\footnote{#1}%
+\addtocounter{footnote}{-1}%
+\endgroup
+}
+
+\newcommand{\norm}[1]{\left\lVert#1\right\rVert}
+
+\definecolor{mycolor}{RGB}{0,100,0}
+\setbeamertemplate{title page}[default][colsep=-4bp,rounded=true,shadow=true]
+\setbeamertemplate{items}[ball]
+\setbeamertemplate{section in toc}[circle]
+\setbeamerfont{subsection in toc}{size=\footnotesize}
+
+\graphicspath{{figures/}} % Directory in which figures are stored
+
+\title{\large Application to postdoctoral position on GW methods}
+\author[PANADES-BARRUETA]{\small Dr. Ram\'{o}n L. Panad\'{e}s-Barrueta
+\vspace{-0.6cm}
+}
+\date{\scriptsize \today}
+
+\apptocmd{\frame}{}{\justifying}{}
+
+\titlegraphic{\includegraphics[width=1.7cm]{en.jpg}\hspace*{6.0cm}~%
+   \includegraphics[width=2.8cm]{tub.png}
+}
+\begin{document}
+
+\frame{\titlepage}
+
+\newcommand<>{\highlighton}[1]{%
+  \alt#2{\structure{#1}}{{#1}}
+}
+
+\newcommand{\icon}[1]{\pgfimage[height=1em]{#1}}
+
+\begin{frame}
+\frametitle{\normalsize Academic Career}
+%\begin{tikzpicture}[remember picture,overlay]
+%\node[anchor=south west,inner sep=0] at (-0.9,-4.5) {\includegraphics[width=1.1\textwidth]{fig1.pdf}};
+%\end{tikzpicture}
+\end{frame}
+
+\begin{frame}
+\frametitle{\normalsize Motivation}
+%\begin{tikzpicture}[remember picture,overlay]
+%\node[anchor=south west,inner sep=0] at (-0.65,-4.5) {\includegraphics[width=1.1\textwidth]{fig2.pdf}};
+%\end{tikzpicture}
+\end{frame}
+
+\begin{frame}
+\frametitle{\normalsize Nuclear Quantum Dynamics}
+%\begin{tikzpicture}[remember picture,overlay]
+%\node[anchor=south west,inner sep=0] at (-0.0,-4.0) {\includegraphics[width=1.0\textwidth]{fig2a_a.pdf}};
+%\end{tikzpicture}
+\end{frame}
+
+\begin{frame}
+\frametitle{\normalsize Electronic Structure}
+%\begin{tikzpicture}[remember picture,overlay]
+%\node[anchor=south west,inner sep=0] at (-0.5,-4.5) {\includegraphics[width=1.1\textwidth]{fig2d_b_mctdh.pdf}};
+%\end{tikzpicture}
+\end{frame}
+
+\begin{frame}
+\frametitle{\normalsize High Performance Computing}
+%\begin{tikzpicture}[remember picture,overlay]
+%\node[anchor=south west,inner sep=0] at (-0.5,-4.5) {\includegraphics[width=1.1\textwidth]{fig2d_b.pdf}};
+%\end{tikzpicture}
+\end{frame}
+
+\begin{frame}
+  \centering \Large
+  Thanks for your attention!\\
+  \textcolor{blue}{Danke für Ihre Aufmerksamkeit!}\\~\\
+  Questions?\\
+  \textcolor{blue}{Fragen?}
+\end{frame}
+
+\end{document}

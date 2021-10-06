@@ -1,0 +1,20 @@
+.. Wiki Golze Group documentation master file, created by
+   sphinx-quickstart on Sat Aug  7 22:52:33 2021.
+   You can adapt this file completely to your liking, but it should at least
+   contain the root `toctree` directive.
+
+Wiki Golze Group
+================
+
+You have reached the pages of the Wiki of Dr. Dorothea Golze's group. More content
+will be added gradually.
+
+.. HINT::
+  This wiki has been generated using Sphinx. The initial setup of requires some knowledge of `reStructuredText <https://www.sphinx-doc.org/en/master/usage/restructuredtext/index.html>`_.
+
+.. toctree::
+    :maxdepth: 2
+    :caption: Contents
+
+    fhi_aims
+    general_tud

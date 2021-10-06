@@ -1,0 +1,17 @@
+"""Simple text of parser"""
+import glob
+import pandas as pd
+
+my_excels = []
+for fil in glob.glob("./*.xlsx"):
+    my_excels.append(pd.read_excel(fil, header=2, usecols=(0, 1, 2, 3, 4)))
+    print(fil)
+for lst in my_excels:  # Loop thow all files
+    lstpr = [x if not isinstance(x, str) else x.replace(' ', '')
+                                 for x in list(lst["Codes"])]
+    for i, j in enumerate(lstpr):
+        if i == len(lstpr) - 1:
+            break
+        elif j == 'tvI!' and list(lstpr[i + 1]) == 'tvI.':
+            print(i, j)
+            print(i + 1, list(lstpr[i + 1])

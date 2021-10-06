@@ -1,0 +1,19 @@
+Golze Group's Wiki
+==================
+
+Welcome to the source code of the Wiki of the Golze Group. These project uses [Sphinx](https://www.sphinx-doc.org/en/master/) to authomatically generate the documentation. As such, new content is added in the [reStructuredText](https://www.sphinx-doc.org/en/master/usage/restructuredtext/basics.html) markup language.
+
+## Quick startup
+
+Create the new documentation files (*e.g.* newdoc.rst) inside the **source** directory. Then modify the file **source/index.rst** to add the new documentation file without the extension:
+
+```
+.. toctree::
+    :maxdepth: 2
+    :caption: Contents
+    :titlesonly:
+
+    fhi_aims
+    general_tud
+    newdoc
+```

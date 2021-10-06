@@ -1,0 +1,5 @@
+AuthType Basic
+AuthName "You need to login to access this content"
+AuthUserFile "/home/rpanades/Documents/Work/GERMANY/SCRATCH/SPHXDOC/muster_website/.htpasswd"
+AuthDigestNonceLifetime 30 
+Require valid-user

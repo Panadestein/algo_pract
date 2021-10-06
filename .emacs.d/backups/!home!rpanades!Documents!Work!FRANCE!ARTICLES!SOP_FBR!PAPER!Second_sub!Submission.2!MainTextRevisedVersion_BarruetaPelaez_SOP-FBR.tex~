@@ -1,0 +1,1364 @@
+\documentclass[aps,preprint,superscriptaddress,amsmath,floatfix,prb,nobibnotes]{revtex4}
+
+\usepackage{graphicx}
+\usepackage{color}
+\usepackage{rotating}
+\usepackage{multirow}
+\usepackage{bm}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{lscape}
+\usepackage{float}
+\usepackage{subfloat}
+\usepackage{subfig}
+\usepackage[font={small}]{caption}
+\def\icm{cm$^{-1}$}
+
+
+\begin{document}
+
+ \title{Low-Rank Sum-of-Products Finite-Basis-Representation (SOP-FBR) of Potential Energy Surfaces}
+
+
+\author{Ram\'on L. Panad\'es-Barrueta}
+\affiliation{Laboratoire de Physique des Lasers, Atomes et Mol\'ecules (PhLAM), Universit\'e Lille 1,
+Villeneuve d'Ascq cedex, France.}
+\author{Daniel Pel\'aez}
+\email{Daniel.Pelaez-Ruiz@universite-paris-saclay.fr}
+\affiliation{Institut des Sciences Mol\'eculaires d'Orsay (ISMO) - UMR 8214. B\^at. 520, Universit\'e Paris-Saclay, 91405 Orsay Cedex}
+
+\date{\today}
+
+\begin{abstract}
+The SOP-FBR approach for the automated multidimensional fit of potential energy surfaces (PES) is presented.
+In its current implementation the method yields a PES in the so-called Tucker sum-of-products form but it is not restricted to this specific \emph{ansatz}.
+The novelty of our algorithm lies in the fact that the fit is performed in terms of a direct product of \emph{Schmidt} basis,
+also known as \emph{natural potentials}. These encode in a non-trivial way 
+all the physics of the problem and, hence, circumvent the usual extra \emph{ad hoc} 
+and \emph{a posteriori} adjustments (\emph{e.g.} damping functions) of the fitted PES.
+Moreover, we avoid the intermediate \emph{refitting} stage common to other tensor-decomposition methods
+typically used in the context of nuclear quantum dynamics.
+The resulting SOP-FBR PES is analytical and differentiable \emph{ad inifinitum}.
+Our \emph{ansatz} is fully general and can be used in combination with most (molecular) dynamics codes.
+In particular, it has been interfaced and extensively tested with the Heidelberg implementation of the
+Multiconfiguration Time-Dependent Hartree (MCTDH) quantum dynamical software package. 
+\end{abstract}
+
+\maketitle
+
+\section{Introduction}\label{sec:intro}
+
+Major advances in the field of quantum dynamics have been connected to the introduction of novel \emph{ans\"atze} for the efficient 
+representation of multidimensional objects, the wavefunction (WF) being 
+ the most distinguished member of this category.
+Indeed, a major breakthrough took place with the introduction of the 
+Multiconfiguration Time-Dependent Hartree (MCTDH) method\cite{bec00:1}.
+In MCTDH the WF is represented by an efficient two-layer adaptive scheme consisting
+on a time-dependent nuclear basis set expressed in terms of a time-independent one.
+This allowed, for the first time, to overcome the traditional \emph{4-atom limit} of the so-called \emph{standard} method
+when considering quantum dynamical problems using non-analytical potentials.
+Perhaps, the most relevant change of paradigm arrived with the adoption of a multilayer (tree) formalism
+epitomized by the Multilayer MCTDH (ML-MCTDH)\cite{wan03:1289,man08:164116,ven11:044135}
+which was subsequently adopted by related methods such as the Gaussian variants of MCTDH.\cite{roe13:064106,ric15:269}
+These compact and highly flexible multilayer-tree structures have allowed the implementation of
+very efficient iterative\cite{phi18:064108} and recursive algorithms.\cite{ven11:044135,men18:126}
+More recently, a new generation of promising methods in which the object structures belong to the
+Tensor-Train family have appeared.\cite{bar15:174107,lar19:204102,gre17:4034,deg19:2780}
+
+A common feature to all these methods is that they are particularly suited or
+rely exclusively on Hamiltonian operators expressed in a separable form, the so-called sum-of-products (SOP) form,
+such as the Vibronic Coupling model Hamiltonian. Considering the Kinetic Energy Operator, either
+it is already in this form or it can be expressed either analytically\cite{gat98:8804} or numerically\cite{lau02:8560}
+in SOP form in a \emph{quasi} automated fashion. On the other hand, the computation of
+potential energy surfaces (PESs) still poses major challenges. For decades now,
+major efforts have been devoted to the development of efficient tensor decomposition
+ algorithms to turn these \emph{a priori} unstructured objects (multidimensional PES) 
+ into separable form.\cite{jae96:7974,pel13:014108,sch17:064105,ott14:014106,ott18:116,pan19:576} 
+A common feature to all these methods is that they rely on a two-step \emph{decoupled} scheme.
+After the multidimensional fit of a set of \emph{ab initio} energies, the resulting PES is
+tensor decomposed to achieve the sought separable form. An exception to this can, in a certain sense, be
+found in the so-called \emph{on-the-fly} methods in which a more or less local (in configuration space) PES 
+is obtained directly from electronic structure calculations.\cite{ric18:134116}\\
+
+In this work, we shall introduce a scheme for the computation of a \emph{global} PESs
+directly from electronic structure calculations in separable form,
+more specifically, but by no means restricted to, the Tucker SOP form. 
+The computation of a more or less \emph{global} high-dimensional PESs
+is a laborious task involving the calculation of energies and possibly properties
+in a large set of reference configurations, followed by the fit into an analytic expression.
+The latter will be turned into a \emph{hopefully} efficient code which will be interfaced with or
+directly implemented in a dynamics software package. Assuming the possibility of numerically converged dynamical
+ calculations, one can conclude that two major factors will contribute
+ to the quality of a simulation: (i) the accuracy and adequacy of the underlying electronic structure calculations
+ (\emph{i.e.} combination of level of theory and electronic basis set); 
+ (ii) the errors associated to the fitting procedure which, in turn, depend on the adequacy of the distribution of the reference geometries.
+ In addition to this, as already mentioned above, the use of PES in combination 
+ with grid-based quantum dynamical methods, like MCTDH,\cite{bec00:1}
+ does greatly benefit from PESs expressed in SOP form.
+Consequently, an extra tensor decomposition stage with its intrinsic error (see for instance Ref. \cite{pel13:014108})
+should be added to this workflow.\\
+
+There is a plethora of fitting procedures for PESs available, so we refer the reader to (part of) the original and extensive
+literature.\cite{bra09:577, daw07:184108, san13:184302, fra11:8379, jia16:479, unk20:013001}
+We will, however, turn our attention into methods which, by \emph{ansatz}, directly provide a SOP form (Eq.\ref{eq:sop}).
+In this category, we can distinguish three types of methods: (i) those providing a
+local (Taylor) expansion, typically Quartic Force Fields;\cite{bar05:014108,ram15:154118,bar17:arxiv} 
+(ii) those using an appropriate Neural Network (NN) approach
+(epitomized by the seminal work of Manzhos and Carrington\cite{man06:194105} and recent applications thereof)\cite{pra17:22272, jia14:034109}; 
+and (iii) those directly fitting into a separable form (see for instance, \cite{ric12:224105,tho12:8628,ric14:1401,avi15:044106,bar15:174107,pan19:576,aer20:024305}) including
+specific NN \emph{ans\"atze} which have been shown to be directly expressible in separable form.\cite{man06:194105,pra17:22272}
+It is worth highlighting the efficient combination of a Smolyak quadrature 
+with non-direct product basis achieved by \'Avila and Carrington.\cite{avi15:044106}
+Perhaps, a more particular case of this last category is given by our recent method for global multidimensional fit of PES\cite{pan19:576}
+in which an intermediate and inexpensive (yet chemically accurate) representation of 
+the electronic Hamiltonian (a reparametrised semiempirical Hamiltonian) can be directly interfaced to a tensor decomposition method 
+such as the Multigrid POTFIT algorithm,\cite{pel13:014108} hence the name of the method Specific Reaction Parameter Multigrid POTFIT (SRP-MGPF).\cite{pan19:576}
+In this regard, the physically meaningful representation of the SRP Hamiltonian allows for the use a fairly small 
+amount of reference points while, at the same time, it provides a physically correct PES.\cite{pan19:576}
+The quality of this SRP PES has been assessed through the determination of accurate vibrational eigenstate
+ and the propagation of a wavepacket using the MCTDH software.\\
+
+As briefly sketched above, in (molecular) quantum dynamics (\emph{aka} multidimensional wavepacket propagations) 
+arguably the main bottleneck is the computation and representation the potential energy surface (PES) in a suitable form.\cite{pel13:014108, pan19:576}
+Turning our attention to MCTDH, a potentially numerically exact method, an already existing PES (in the form of a subroutine or an appropriate analytical function)
+has to be preprocessed (tensor decomposed) in order to achieve the so-called sum-of-products (SOP) form representation:
+\begin{equation}\label{eq:sop}
+   V = \sum_r c_r \prod_\kappa v^{(\kappa)}_r
+ \end{equation}
+where the $v^{(\kappa)}$ are mono- (or low-dimensional) basis functions expressed on a grid (see Eq.\ref{eq:gridtucker}).
+There are plenty different types of SOP forms (Tucker form, CP format, Tensor-Train decomposition or even the conceptually simple Taylor expansion, among others).
+In this work, we shall focus on the so-called Tucker form (Eq.\ref{eq:gridtucker}) which is the most commonly used in MCTDH. The reader is referred to the abundant 
+literature concerning the advantages of using SOP in general (curse of dimensionality, quadrature) and in MCTDH in particular
+(see for instance the \emph{classical} MCTDH Review).\cite{bec00:1}
+It should be stressed that the subsequent discussion is fully general and thus applicable to any type of multidimensional functions.
+However, without any loss of generality, we shall make reference to aspects related to MCTDH quantum dynamics.\\
+
+The different \emph{variational} Tucker decomposition schemes proposed over the years\cite{jae96:7974,pel13:014108,sch17:064105} have been shown to be efficient, accurate, and, 
+most relevantly, they have been shown to allow a systematic control of the error owing to their variational character.
+In all of these methods, the main goal is to compute an 
+accurate representation of (or an approximation to) potential density matrices from which grid-based \emph{Schmidt} basis functions
+(\emph{aka} single-particle potentials, natural potentials) can be extracted as eigenvectors.
+The main difference in these methods is simply how they arrive to these density matrices.
+For instance, in the pioneering POTFIT algorithm,\cite{jae96:7974} this was achieved by computing the potential on the whole grid (thence its power but limited applicability).
+On the other hand, in Multigrid POTFIT,\cite{pel13:014108} this was achieved using a series of nested grids, whereas in the equivalent 
+Monte-Carlo POTFIT,\cite{sch17:064105}
+ the potential density matrices were stochastically approximated. For the sake of completeness, we should at this point mention
+ the powerful strategies proposed by Otto\cite{ott14:014106, ott18:116} and Schr\"oder\cite{sch20:024108}
+ in which the sought separable form is obtained through a series of (recursive) High-Order Singular Value Decompositions\cite{lat00:1253} 
+ and a CANDECOMP\cite{car70:283, har70:1} formalism, respectively.
+ In any case, the common requirement of all these approaches is the \emph{preexistence} of a PES in analytical form. 
+ Consequently, they can be seen as \emph{refitting} methods.\\
+ 
+In this work, we tackle this very problem under the assumption that it is possible to achieve a SOP form directly
+from high-level electronic structure calculations. As it will be shown, this makes the computation of a global PES
+more efficient and, what is more relevant, less prone to errors since this scheme reduces
+the necessary number of stages to this end. As such, our sum-of-products Finite-Basis-Representation (SOP-FBR) 
+approach, constitutes an alternative to some NN-based methods.\cite{man06:194105,pra17:22272}
+The idea behind SOP-FBR is simple. Given a low-rank Tucker expansion on the grid,
+we replace the grid-based basis functions (\emph{i.e.} natural potentials) by an expansion in 
+terms a set of functions. As a result, a global SOP-FBR PES is simply an analytical expression 
+in Tucker form (but not restricted to this specific form). The SOP-FBR parameters are obtained by
+optimisation using an appropriate number of reference \emph{ab initio} energies.
+A subtle difference between SOP-FBR and any traditional multivariate regression
+method is the fact that we do not directly fit our PES to, say, a set of physically-oriented polynomials (\emph{one-layer}).
+In SOP-FBR, we optimize a certain number of configuration interaction coefficients together with the
+expansion coefficients necessary to expand optimal \emph{Schmidt} basis (\emph{i.e.} natural potentials)
+in terms of a given set of functions (\emph{e.g.} orthonormal polynomials).
+Consequently, SOP-FBR relies on a \emph{two-layer} scheme, analogous (no time-dependence though)
+to the MCTDH one in which the WF is represented by a time-dependent basis (upper layer)
+and an underlying time-independent one (lower layer).
+This scheme provides us with a highly flexible model relying on the \emph{optimal} properties of a multidimensional Schmidt decomposition
+(see Appendix D in \cite{bec00:1} and Appendix B in \cite{pel13:014108}).
+
+\section{Theory}\label{sec:theory}
+The \emph{traditional recipe} for the preparation of a PES suited for quantum dynamical calculations typically implies three/four steps:
+\begin{itemize}
+   \item[1.-]{the judicious choice of reference geometries;}
+   \item[2.-]{the computation of accurate reference energies;}
+   \item[3.-]{an analytical fit; and}
+   \item[4.-]{(in certain cases) a tensor decomposition.}
+\end{itemize}
+With respect to step 1, we have recently shown that it is possible to automatically obtain an \emph{optimal} set of pivotal structures
+ (based on the stationary points) from which systematically generate a set of reference geometries.\cite{pan19:576}
+ On the other hand, from step 2, all stages imply a direct loss of quality in the resulting PES owing to: 
+ (i) the intrinsic accuracy of the selected level of theory; 
+(ii) the accuracy of the fit (dramatically dependent on the dimension of the system); and
+(iii) the quality of the decomposition, which is directly related to the size of the resulting expansion and the quality of the basis functions.
+To understand the last point, one should simply consider the vast configuration space associated to the parametrical
+representation of the chosen tensor structure. In this respect, multiple minima are to be expected owing to the usual non-unique character of
+a, for instance, Tucker decomposition.\cite{kol09:455}
+Since our approach involves (but it is by no means limited to) Tucker expansions, in the following we shall use the terms SOP and Tucker 
+exchangeably.\\ 
+
+We propose to combine stages 3 and 4 in a single step thus, potentially (and effectively) reducing the number of steps involved in a PES fit
+together with the concomitant errors. Obviously, electronic structure calculations are unavoidable, so far, but owing to the computer
+power available (\emph{e.g.} supercomputer centers), this is not anymore a \emph{bottleneck}.
+The basic idea is that it is possible to arrive to an \emph{optimal} SOP (Tucker) expression (\emph{i.e.} to the optimal parameters defining it)
+either stochastically or by using some kind of, possibly global, optimization algorithm. In other words, a guess of initial SOP parameters will be optimised 
+according to a suitably defined target function. In our case, this will be the root-mean square error (RMSE, $\chi(\mathbf{Q})$) 
+between the reference function (\emph{exact}) and our current approximation to it (\emph{app}):
+\begin{equation}
+  \chi(\mathbf{Q})=\sqrt{\frac{\sum_i^N \Delta V_i^2(Q_i)}{N}}
+\end{equation}
+where $\Delta V_i=V^{exact}(Q_i)-V^{app}(Q_i)$ is the difference between the exact potential and the approximated one at the i-th reference geometry.
+Ideally, the approximation should be such that when computing the RMSE using another (possibly denser) set of geometries ($\{\mathbf{Q'}\}$,
+validation set) different from the reference one,
+the RMSE remains reasonably close to the reference one: $|\chi(\mathbf{Q}) - \chi (\mathbf{Q'})|<\epsilon$ with $\epsilon$ small.\\
+
+At this point, it should be emphasised that in contrast to grid-based tensor decomposition methods, in SOP-FBR we do not necessarily rely on a grid. The so-called single-particle (or natural) potentials of POTFIT (or related methods) are replaced by analytical functions which we refer to as \emph{Schmidt} functions. The latter are expanded in a given polynomial series (Chebyshev in our case). This results in a set of parameters (\emph{core} tensor and expansion coefficients) which are optimised in order to reproduce a given level of theory. To obtain a suitable guess for the optimisation process, we employ an initial (grid-based) Tucker decomposition using, for instance, the Higher Order Orthogonal Iteration (HOOI) algorithm as implemented in the \texttt{TensorLy} library. It should be stressed that this initial decomposition cannot be directly performed on the high-level PES (e.g. high-level ab initio) owing to the huge number of grid points needed and the necessary CPU time for this. This has been extensively discussed in our previous work on SRP-MGPF.\cite{pan19:576}\\
+
+A low-rank $f$-dimensional grid-based expansion of the PES in Tucker form reads:
+\begin{equation}\label{eq:gridtucker}
+   V^{app}_{i_1,i_2,\ldots,i_f} = \sum_{j_1}^{m_1}\cdots\sum^{m_f}_{j_f} C_{j_1,\ldots,j_f} \prod_\kappa^f v^{(\kappa)}_{i_\kappa j_\kappa}
+\end{equation}
+where $C_{j_1,\ldots,j_f}$ is a coefficient belonging to the so-called \emph{core} tensor and $v^{(\kappa)}$ are the \emph{Schmidt} basis functions
+(factor matrices in the tensor community\cite{kho07:523}) expressed on a grid
+(note the two indices).\cite{jae96:7974} The latter are referred to as single-particle potentials (SPPs) in the MCTDH literature.
+ This is the \emph{ansatz} commonly used in POTFIT, MGPF or MCPF to represent the PES in SOP form.
+In this expression, the PES value at a given geometry (V($\mathbf{Q}$), with $\mathbf{Q}\equiv \left(q_{i_1}, \ldots, q_{i_f} \right)$) specified by its grid indices
+($ \left(i_1,i_2,\ldots,i_f\right)\leftrightarrow \left(q_{i_1}, \ldots, q_{i_f} \right)$) is expressed as a sum of products
+of weighing coefficients ($C_{j_1,\ldots,j_f} $) times a (Hartree) product of one- (or low-) dimensional functions on a grid ($v^{(\kappa)}_{i_\kappa j_\kappa}$).
+Note that by $\kappa$ we refer to a given degree of freedom (DOF). In Figure \ref{fig:graphtucker}, we display the graphical representation of a
+3-dimensional (3D) Tucker expansion. Note that the \emph{core}-tensor has the same dimensionality than the initial reference tensor of PES
+ on the grid and thus it is affected by the curse of dimensionality at the same rate.
+With respect to notation, the above Tucker expression can be more compactly written as (see Kolda and Bader's comprehensive review)\cite{kol09:455}:
+\begin{equation}
+   V^{app}=[\![\mathcal{C}, \mathbf{v}]\!]
+\end{equation}
+
+\begin{figure}[t!]
+\begin{center}
+   \scalebox{0.25}{\includegraphics{figures/TensDecomp2}}
+   \end{center}
+   \caption{
+    \small{Graphical representation of a 3D Tucker expansion. See main text for explanation.}}
+    \label{fig:graphtucker}
+\end{figure}
+
+To motivate our discussion, we should recall that in the original POTFIT (and related methods), the SPPs are grid-based basis functions adopting the form of matrices. 
+Hence the SPPs merely contain the collection of SPP values at the grid points.
+Consequently, the existence of implicit \emph{underlying SPP/Schmidt functions} can be exploited in order to increase the density of the grid
+representation of PES. In MCTDH, this is the so-called \texttt{chnpot} procedure in which some kind of interpolating
+procedure (\emph{e.g.} cubic splines) is used to approximate SPPs values in the regions in between the original grid points.\cite{jae96:7974} 
+The SPPs or Schmidt functions are smooth except perhaps for the large $j$ ones. To illustrate this, we present in Figure \ref{fig:natpots1} 
+the first 10 SPPs of the water molecule (see details of the PES later in text) on a grid (dots) together with interpolating functions (lines). 
+The SPPs have been obtained through the Higher Order Orthogonal Iteration (HOOI) method as implemented in the \texttt{TensorLy}
+Python library.\cite{kos19:925} 
+\begin{figure}[htb!]
+  \begin{center}
+   \includegraphics[scale=.7]{figures/evec10_h2o.pdf}
+  \end{center}
+   \caption{
+    \small{Representation of the first 10 natural potentials of the PJT2-PES of the H$_2$O molecule. 
+    The dots represent the values of the natural potentials at the DVR grid points.}}
+    \label{fig:natpots1}
+\end{figure}
+
+ As it can be observed, there is a remarkable smoothness in the lower-$j$ basis functions whereas the higher-$j$ SPPs exhibit a
+ highly oscillating (somewhat noisy) and, hence, undesirable trend for fitting.
+ At this point, it should be further emphasised that these lower-j Schmidt basis carry the most relevant information of the PES 
+ as proven by the fact that grid-based methods such as MGPF or MCPF only require such a small amount of SPPs.
+ The behaviour of the SPPs was already discussed in the seminal POTFIT paper by J\"ackle and Meyer\cite{jae96:7974}
+ as well as by Manzhos and Carrington.\cite{man06:084109} Interestingly, this important property has not been fully exploited and lies at the core of our approach.
+Based on this simple observation, we propose a new low-rank \emph{ansatz} in which we substitute the SOP grid-based expression (Eq.\ref{eq:gridtucker})
+by a SOP Finite Basis Representation (SOP-FBR) in terms of some basis functions ($T(q)$):
+\begin{equation}\label{eq:sopfbr}
+   V(q_1,\ldots,q_f) = \sum_{j_1}^{m_1}\cdots\sum^{m_f}_{j_f} C_{j_1,\ldots,j_f} \prod_\kappa^f (\sum^{t_\kappa}_\mu c^{(\kappa)}_{\mu, j_\kappa} T_\mu(q_\kappa))
+\end{equation}
+where the the grid indices ($i_\kappa$) in Eq.\ref{eq:gridtucker} have been replaced by the value of the actual coordinate ($q_\kappa$).
+This expression can be used in any grid since the grid-based SPPs ($v^{(\kappa)}$) are now interpolated through the
+use of a weighted sum of $t_\kappa$ $T$-basis functions:
+\begin{equation}
+   v^{(\kappa)}_j (q_\kappa) =  \sum^{t_\kappa}_\mu c^{(\kappa)}_{\mu, j_\kappa} T_\mu(q_\kappa)
+\end{equation}
+with $T$ assumed to be appropriated for the specific problem.
+The case we discuss is that of a general molecular PES (multiwell bound region) for which the typical 
+behaviour is that of the SPPs in Figure 2. However, we have observed that the higher-j SPPs for the Coulomb potential present a 
+convoluted sinus type behaviour (work in progress).
+Throughout this work we have expressed $T$ with Chebyshev polynomials but any other functions are also possible.
+Consequently, this change in the representation, from grid to FBR,
+leads to a full analytical global PES, grid-independent and differentiable \emph{ad infinitum}. Indeed, one can immediately realise
+ that n-th order derivatives can be obtained in a straightforward manner. By direct differentiation, one obtains:
+\begin{equation}\label{eq:sopfbrderiv}
+\frac{\partial ^nV (q_1, q_2, \ldots, q_f)}{\partial q_\kappa^n} = \sum_{j_1}^{m_1}\cdots\sum^{m_f}_{j_f} C_{j_1,\ldots,j_f} 
+  \left(\sum^{t_\kappa}_\mu c^{(\kappa)}_{\mu, j_\kappa}  \frac{\partial^n T_\mu(q_\kappa)}{\partial q_\kappa^n}\right)
+  \prod_{\nu\ne \kappa}^f \left(\sum^{t_\nu}_\mu c^{(\nu)}_{\mu, j_\nu}  T_\mu(q_\nu)\right)
+\end{equation}
+At this point it is convenient to highlight some analogies between low-rank grid based methods, such as grid-based MGPF and grid-free SOP-FBR.
+In the original publication\cite{pel13:014108} and subsequent applications,\cite{pel14:42,pel17:100,hal19:14754} it could be observed that 
+MGPF is able to extract a very compact representation of the PES following a given prescription in the choice of the reference points 
+(see discussion on the sparsity of the \emph{core} tensor in Section \ref{sect2}).
+For instance, in Ref.\cite{pel17:100}, the infrared spectrum of H$_3$O$_2^-$ (9D) was computed.
+The MGPF PES required 1.7 MB of storage. In contrast, the original PES which would have required 10$^5$ MB. 
+The resulting MGPF PES based spectrum was in good agreement with the reference experimental Ar-vibrational predissociation one.
+ In view of the nice agreement, discrepancies between both spectra could be attributed to the effect of the Ar atom in the 
+ vibrational structure of the H$_3$O$_2^-$ complex.
+In other words, considering the PES as a multidimensional image, it is possible to compress it using just a few basis functions.
+The difference in SOP-FBR is only that we achieve the same expansion through an extra parametrization of the SPP (Schmidt functions) and an optimisation.
+In summary, it is possible to obtain such an $\mathcal{L}^2$-optimal Tucker expansion using numerical methods such as stochastic, global, local search algorithms
+or a suitable combination thereof. 
+
+To finalize this Section, for the MCTDH oriented reader, we would like to point out that the \emph{contracted} mode ($\nu$):\cite{jae96:7974}
+\begin{equation}\label{eq:gridcontr}
+    D^{(\nu)}_{j_1 \ldots i_\nu \ldots j_f} = \sum_{j_\nu} C_{j_1 \ldots j_\nu \ldots j_f} v^{(\nu)}_{i_\nu j_\nu}
+\end{equation}
+can be readily obtained from a SOP-FBR expression through:
+\begin{equation}\label{eq:sopcontr}
+     D^{(\nu)}_{j_1\ldots i_\nu\ldots j_f} = \sum_{j_\nu} C_{j_1\ldots j_\nu\ldots j_f} v^{(\nu)}_{j_\nu} (q^{(\nu)}_{i_\nu})
+\end{equation}
+provided that a large enough sampling has been considered for the contracted mode (\emph{cf.} torsion mode in HONO in Section \ref{sect2}).\\
+
+\section{Results and discussion}\label{sec:results}
+
+In this Section, we shall introduce and discuss the actual implementation of the method as well as the computational and numerical properties of the SOP-FBR PES.
+Hereafter, the following notation for our SOP-FBR expansions will be used: $[(m_1, t_1), (m_2, t_2), (m_3, t_3),...]$
+ representing an $f$-dimensional \emph{core} tensor possessing $\prod_\kappa^f m_\kappa$ elements.
+This also indicates that each $\kappa$ DOF is given by a set of $m_\kappa$ basis functions which, in turn, 
+are expressed in terms of $t_\kappa$ underlying basis, in the present case, Chebyshev polynomials.
+It should be further emphasized that there is no restriction in the type of basis sets 
+employed, except that it should be adapted to the target potential.
+The total number of parameters will formally then be: $\prod_\kappa^f m_\kappa + \sum_\kappa^f m_\kappa\cdot t_\kappa$.
+As it will be discussed, we will profit from the huge range of values (over 12 orders of magnitude) among the \emph{core} tensor elements to greatly
+reduce the number $\prod_\kappa^f m_\kappa$ terms.
+Finally, in those cases where $d$ DOF are represented by the same amount of basis functions, we shall simply write $[d \times (m, t)]$.
+Note that the Chebyshev polynomials start at order 0, hence $(m, t)$ implies the use of a Chebyshev polynomial of maximum order $(t-1)$.
+
+
+\subsection{Proof of concept: SOP-FBR of a Henon-Heiles potential (3D and 9D)}\label{subsec:bh}
+In order to test our algorithm and assess its quality, we have studied the celebrated Henon-Heiles potential which 
+constitutes a common potential benchmark\cite{nes02:10499, ven11:044135} of low-rank character:
+\begin{equation}\label{fig:hhpot}
+  V = \frac{1}{2} \sum_{\kappa=1}^f q^2_\kappa + \lambda\sum_{\kappa=1}^{f-1}\left(q^2_\kappa q_{\kappa + 1}-\frac{1}{3}q^3_{\kappa+1}\right) 
+  \quad \text{$\lambda$=0.111803}
+\end{equation}
+In our case, the choice of the anharmonic parameter ($\lambda$) has been based on purely \emph{historic} reasons.\cite{nes02:10499, ven11:044135}
+The potential boundaries are [-9, 7] length units.\cite{ven11:044135}
+The study of a low-rank expression serves as both a proof of concept for our algorithm as well as
+a validation for the numerical accuracy of our approach.
+Indeed, as shown in Reference \cite{pel13:014108} for the MGPF tensor decomposition algorithm,
+we should expect SOP-FBR to be able to exactly describe low-rank potentials. In other words,  it should be possible to obtain,
+ in a non-algebraic manner, an accurate approximation to the optimal \emph{core} tensor coefficients
+as well as the values of the Schmidt factor matrices (\emph{aka} single-particle potentials, SPPs) through 
+a \emph{walk} through the configuration space of the SOP-FBR parameters.\\
+
+First of all, to illustrate the idea of sampling the Tucker configuration space, we have considered the stochastical optimisation of a
+SOP-FBR ( $[3\times(6,5)]$) for a 3D Henon-Heiles potential (Eq.\ref{fig:hhpot} with $f=3$) (boundaries as previously indicated).
+For this we have used the robust Basin-Hopping (BH) global optimisation algorithm\cite{wal97:5111} as implemented in the \texttt{SciPy} library.\cite{2020SciPy-NMeth}
+The initial guess parameters have been obtained through random sampling in the intervals [0., 0.01] and [-1.0,1.0] for the \emph{core} and Chebyshev polynomials coefficients, respectively.\
+A systematic strategy for the computation of this guess will be discussed in Section \ref{sec:h2o}.
+The obtained RMSE error has been of $2.076\cdot10^{-5}$
+ 
+This result nicely illustrates the \emph{possibility} of strolling along (or guiding our algorithm through) the Tucker configuration space to find minima.
+In the following, we shall introduce a more educated procedure to generate the set of initial guess parameters and to search for the RMSE minimum.\\
+
+We continue now with same very same type of potential, Henon-Heiles for 3D (again $[3\times(6,5)]$) and for 9D ($[9\times(6,7)]$ ).
+In this case, we employ a more educated guess consisting in values randomly chosen from a Gaussian distribution around
+HOOI values (see discussion about the SOP-FBR guess in Section \ref{subsec:guess})
+This time, however, we shall make use of a local optimiser, more specifically, the Broyden-Fletcher-Goldfarb-Shanno (BFGS) algorithm\cite{noc06}
+as implemented in the \texttt{SciPy} library.\cite{2020SciPy-NMeth}. We do this in a decoupled manner.
+We first optimize the basis functions (Chebyshev) coefficients
+(leaving the \emph{core} tensor fixed) and then we optimise the \emph{core} tensor elements (leaving the Chebyshev coefficients fixed).
+The simple idea behind this is the reduction of computational cost when dealing with large dimensional problems.
+In Table \ref{tab:rmseHH}, we present the RMSE errors obtained for these two optimisations. As it can be observed, in both cases
+the error can be assimilated to purely numerical noise thus validating our approach and, more relevantly at this stage, our algorithm.
+
+\begin{table}[h!]
+\centering
+\caption{
+ {\small{RMSE of the SOP-FBR expansions of the $f$D Henon-Heiles potentials ($f$=3,9). First column displays the structure of the 
+ SOP-FBR and, implicitly, its dimensionality. Second and third columns present the length and corresponding energy intervals, respectively.
+ Fourth column, presents the RMSE in potential units. Validation sets comprising 30$^3$ (3D) and 8$^9$ (9D) points have been used to compute the error.
+  }}
+  }\label{tab:rmseHH}
+ \vspace{13pt}
+ \setlength{\tabcolsep}{8pt}
+\begin{tabular}{c c c c}
+ \hline
+    \textbf{SOP-FBR} & \textbf{Boundaries} & $\mathbf{\Delta E}$ & \textbf{RMSE} \\ 
+ \hline
+       $[3\times(6,5)]$ & [-9, 7] & $[-1.83, 165.67]$ & $1.241\cdot10^{-13}$ \\   
+       $[9\times(6,7)]$ & [-9, 7] & $[-81.00, 466.07]$ & $5.165\cdot10^{-12}$ \\ 
+ \hline
+\end{tabular}
+\end{table}
+
+To further analyse the characteristics of our SOP-FBRs, in Figure \ref{fig:hh3d}, 
+we present contour plots (x=0) of the HH 3D reference potential, the SOP-FBR approximation, and the $\mathcal{L}_1$ difference between them.
+As it can be seen, the error (~10$^{-13}$) is homogeneously distributed along all energy domains. This can also be observed for the 9D case
+in the graph of the energy correlation comparing the reference potential and our SOP-FBR approximation (Fig.\ref{fig:hh9d}),
+in which latter follows closely the former without any appreciable divergence within the whole energy interval.
+The 3D(9D) SOP-FBR optimisation required 0.27(0.35) hours of CPU using 24 processors. 
+
+\begin{figure}[tbh!]
+\begin{center}
+   \scalebox{0.75}{\includegraphics{figures/hh_cpyz.pdf}}
+   \end{center}
+   \caption{
+    \small{Contour plots (for x=0) showing the reference potential and the SOP-FBR approximation for the 3D Henon-Heiles potential.}}
+    \label{fig:hh3d}
+\end{figure}
+
+\begin{figure}[htb!]
+\begin{center}
+   %\scalebox{1.0}{\includegraphics{figures/hh9_corr.pdf}}
+    \scalebox{5.0}{\includegraphics{figures/hh9_corr.jpeg}}
+   \end{center}
+   \caption{
+    \small{Error correlation between the reference potential (y-axis) and the SOP-FBR approximation (x-axis) for the 9D Henon-Heiles potential.}}
+    \label{fig:hh9d}
+\end{figure}
+
+\section{SOP-FBR of a low-dimensionality PES: H$_2$O (3D)}\label{sec:h2o}
+
+In the following section, we shall tackle a \emph{realistic} 3D problem, the water (H$_2$O) molecule.
+We have used the Polyanski-Jensen-Tennyson H$_2^{16}$O spectroscopically refined PES known as PJT2.\cite{pol96:6490}
+
+\subsection{Generation of the guess parameters}\label{subsec:guess}
+
+In contrast to our previous model case-study, the HH potential, when dealing with \emph{ab initio} PES, 
+it would be desirable, for the sake of efficiency, to start our calculation with a physically oriented guess. 
+Our strategy for this has consisted in the use of an inexpensive SRP PES computed \emph{a priori} following our recently published
+method\cite{pan19:576} using our own software (SRPTucker\cite{pan19}) which is interfaced with the MOPAC semiempirical software.\cite{ste16}
+This SRP PES can be readily decomposed on a grid using the High Order Orthogonal Iteration (HOOI) algorithm\cite{kol09:455}
+ thus obtaining an initial \emph{core} tensor and its associated Schmidt basis functions (SPPs).
+In this particular SRP PES, we utilised a grid  of $5^3$ reference geometries (a subset of the one that we use for the SOP-FBR optimisation)
+ and made use of the Parametric Model 3 (PM3) Hamiltonian.\cite{ste13:1}
+ 
+\begin{figure}[H]
+	\begin{center}
+	%\includegraphics[width=\textwidth]{figures/spps_h2o_comp_labelfix.png}
+        \includegraphics[width=\textwidth]{figures/evec_hono_1.pdf}
+	\end{center}
+	\caption{First five SPPs of the angular DOF ($\theta_{HOH}$) for the H$_2$O molecule obtained by HOOI Tucker decomposition using 
+	(i) the reference potential PJT2\cite{pol96:6490} (blue) (ii) the PM3 Hamiltonian (orange); and (iii) the resulting SRP (green).}\label{spps_h2o_srp_pm3}
+\end{figure}
+ 
+ Figure~\ref{spps_h2o_srp_pm3} displays a comparison of the first five SRP SPPs 
+ for the \textit{ab initio} reference surface, the PM3 surface, and the resulting SRP\@.
+ As it can be observed, the guess SRP SPPs are in much better agreement with the \emph{exact} ones than the original PM3.
+ From these plots, we notice that the SRP constitutes a better source of guess parameters than the PM3 method. Despite the fact that
+ we are dealing with guess (initial) Schmidt functions (SPPs), any improvement in the shape of the semiempirical SPPs will be turned into
+ a saving in computational effort when searching for the optimal SOP-FBR solution. On the other hand, the most relevant elements 
+ of the \emph{core} tensor are very similar for the three methods (see Figure~\ref{compare_core_h2o}).
+
+\begin{figure}[h]
+	\begin{center}
+	\includegraphics[width=0.8\textwidth]{figures/compare_core_h2o.pdf}
+	\end{center}
+	\caption{Comparison of the first elements of the \emph{core} tensor of the H$_2$O molecule obtained by HOOI Tucker decomposition of (i) the reference potential\cite{pol96:6490} (ii) the PM3 hamiltonian and (iii) the corresponding SRP\@. Since the \emph{core} tensor happens to be very sparse, for higher index values the differences are even less appreciable.}\label{compare_core_h2o}
+\end{figure}
+
+For the sake of efficiency, prior to any optimisation, we have imposed a symmetrization by \emph{ansatz} to the SOP-FBR expression:
+(i) the SPPs for both $OH$ stretching modes have been forced to be equal, and (ii) the \emph{core} tensor elements satisfy the $C_{ijk} = C_{jik}$ condition, 
+where $ijk$ are indices referring to Schmidt basis functions (SPPs) and we have implicitly assumed the $[r_1\equiv\nu_{OH1}, r_2\equiv\nu_{OH2}, \theta_{HOH}]$ mode ordering.
+It should be noticed that if no such restriction is imposed, the obtained SPPs are nevertheless reasonably close to the symmetrized ones.\\
+
+The SOP-FBR optimisation has been performed in a \emph{decoupled} manner (see discussion in Section \ref{subsec:bh}) using
+a combination of global and local algorithms, namely Multi-Level Single-Linkage (MLSL)\cite{kan87:39} for the former
+and Bound Optimization BY Quadratic Approximation (BOBYQA) for the latter.\cite{pow09:26} This type of
+approaches have been shown to be very well adapted to the reparametrisation of semiempirical Hamitonians.\cite{pan19:576}
+For this optimisation, we used a set (grid) of [15, 15, 15] structures (mode ordering as above) and the SOP-FBR structure was
+ $[3\times(5,11)]$ thus generating a parameter space of size $5^3 + 3 \cdot 5 \cdot11 = 290$.  The reference points were generated 
+through homogeneous sampling of normal distributions centred at the water molecule equilibrium parameters.
+We used for this the \texttt{truncnorm} method of SciPy.\cite{2020SciPy-NMeth}
+The standard deviation was set up in order to cover the 1D intervals taken from the MCTDH model inputs,
+which are available in the Heidelberg MCTDH software package (see Table \ref{tab:dvrh2o}).
+It should be stressed that equilibrium geometrical parameters can be computed through the use of automated
+methods (see for instance Ref.\cite{kop19:e26008} and references therein).\\
+ 
+ \begin{figure}[H]
+	\centering
+	\includegraphics[width=0.4\textwidth]{figures/h2o_fit_corr.pdf}
+	\includegraphics[width=0.495\textwidth]{figures/h2o_fit_reg.pdf}
+	\caption{Correlation plot between the reference \emph{ab initio} energies and corresponding SOP-FBR energies, and cumulative RMSE values obtained with a reference tensor of $15\times15\times15$ points.}\label{fig_h2o_an}
+\end{figure}
+ 
+The resulting SOP-FBR RMSE was of 0.686 $cm^{-1}$, a value which was nicely preserved (0.703 $cm^{-1}$) when considering a
+validation set of $10^6$ points, different from the reference ones. It should be noted that similar errors have been obtained with larger sets,
+all converging to the reference value (HOOI decomposition) of RMSE = 0.673 $cm^{-1}$.
+The quality of the resulting SOP-FBR PES has been assessed in several different ways. In Figure ~\ref{fig_h2o_an}, 
+we present a graphical analysis of its quality in the form of a correlation plot between the reference and SOP-FBR energies (left panel) 
+and the cumulative RMSE (right panel). As it can be observed, the error is equally distributed along the whole energy interval [0, 40000] cm$^{-1}$.
+Moreover, we have computed the minimum of the PES using the steepest descent method. The SOP-FBR and reference values
+(see Table~\ref{myta01}) agree up to the fourth decimal place. 
+
+\begin{table}[h]
+\centering
+\caption{Minimum geometrical parameters for the reference PES and the SOP-FBR PES obtained with the steepest descent algorithm.
+Distances are in atomic units and angles are in radians.}\label{myta01}
+\begin{tabular}{ccccc}
+\hline
+\textbf{PES} & $\mathbf{r_1}$ & $\mathbf{r_2}$ & $\bm{\theta}$ \\ %\midrule
+\hline
+Ref. & 1.8102 & 1.8102 & 1.8238 \\ %\midrule
+SOP-FBR & 1.8102 & 1.8102 & 1.8240 \\ %\midrule
+\hline
+\end{tabular}
+\end{table}
+
+As final test of the quality of the SOP-FBR PES, we have computed the Zero Point Energy (ZPE) and lowest vibrational eigenvalues with the
+MCTDH algorithm. For this problem, we have considered the Discrete Variable Representation (DVR) shown in Table \ref{tab:dvrh2o}.
+
+\begin{table}[h]
+\centering
+\caption{
+{\small{
+Definition of the MCTDH DVR primitive grid for the water molecule. Stretching motions ($\nu_{OH}$) are represented by $r_i$ ($i=1, 2$) and the
+$HOH$ bending by $\theta$. The DVR basis functions are sinus (sin) for the former and Legendre (Leg) DVR for the latter. 
+N is the number of primitive (DVR) grid points. The range represents the first and last grid points in atomic units for the distances and in radians for the angle.
+The contracted mode is the angle.\cite{pel13:014108}
+}}
+ }\label{tab:dvrh2o}
+ \vspace{13pt}
+ \setlength{\tabcolsep}{8pt}
+\begin{tabular}{c c c c}
+ \hline
+   \textbf{DOF} & \textbf{DVR} & \textbf{N} & \textbf{Range} \\
+ \hline
+   $r_1$              & sin   & 34 & [1.4500, 2.4500]  \\
+   $r_2$              & sin   & 34 & [1.4500, 2.4500]  \\
+   $\theta$          & Leg  & 50 & [1.1400, 3.1416]  \\
+ \hline
+\end{tabular}
+\end{table}
+
+Our results are in very nice agreement with the reference PES. Our ZPE is of 4660.225 cm$^{-1}$, a value
+which nicely compares to the reference one of 4660.124 cm$^{-1}$. 
+The remaining vibrational eigenvalues (relative to the ZPE) are presented in Table \ref{tab:vibeigsth2o}. In all cases, the differences
+between the SOP-FBR and the reference values is below 1 cm$^{-1}$.
+
+\begin{table}[h]
+\caption{{\small{
+ Comparison of the 20 lowest vibrational eigenvalues of H$_2$O for the original PES and the SOP-FBR one.
+  }}
+  }\label{tab:vibeigsth2o}
+  \centering
+ \vspace{13pt}
+ \setlength{\tabcolsep}{8pt}
+\begin{tabular}{c r@{.}l r@{.}l}
+ \hline
+       \textbf{State} & \multicolumn{4}{c}{\textbf{Eigenenergies (cm$^{-1}$)}}\\
+        & \multicolumn{2}{c}{\textbf{SOP-FBR}} & \multicolumn{2}{l}{\textbf{Reference}} \\
+\hline
+      0 &    0& &    0&  \\ 
+      1 & 1593&261 & 1593&624  \\ 
+      2 & 3151&076 & 3151&074  \\ 
+      3 & 3722&318 & 3722&315  \\ 
+      4 & 3820&802 & 3820&786  \\ 
+      5 & 4670&742 & 4670&669  \\ 
+      6 & 5297&252 & 5297&631  \\ 
+      7 & 5394&652 & 5395&063  \\ 
+      8 & 6150&238 & 6150&351  \\ 
+      9 & 6839&599 & 6839&602  \\ 
+     10 & 6938&042 & 6938&046  \\ 
+     11 & 7452&389 & 7452&381  \\ 
+     12 & 7572&758 & 7572&731  \\ 
+     13 & 7584&352 & 7584&555  \\ 
+     14 & 7644&830 & 7644&798  \\ 
+     15 & 8345&769 & 8345&688  \\ 
+     16 & 8450&176 & 8450&059  \\ 
+     17 & 8949&339 & 8949&394  \\ 
+     18 & 9010&874 & 9011&259  \\ 
+     19 & 9136&455 & 9136&860  \\ 
+     20 & 9204&255 & 9204&683  \\ 
+\hline
+\end{tabular}
+\end{table}
+
+\section{Six dimensional case: HONO isomerization}\label{sect2}
+As final example, we study now the HONO (6D) PES in the \emph{cis-trans} isomerization region which has become a
+benchmark for these type of methodological studies.\cite{pra17:22272, bar15:174107, pan19:576}
+In this case the reference PES is given by the model CCSD(T)/cc-pVQZ-quality analytical PES of Richter \emph{et al.}\cite{ric04:1306}
+The structure of our 6D SOP-FBR PES is given by $[5\times(5,7),(12,12)]$, that is, 5 Schmidt basis (SPPs) represented by 7 Chebyshev polynomials each,
+for all DOF except the torsion which necessitates a somewhat larger basis (\emph{i.e.} sampling) of 12 Schmidt basis (SPPs) 
+represented by 12 Chebyshev polynomials each (up to 11th order).
+
+\begin{figure}[thb!]
+\begin{center}
+   \includegraphics[angle=-90.,scale=0.35] {./figures/HONO.pdf}
+   \caption{
+    \small{
+       Definition of the internal coordinates of HONO.
+     }}
+    \label{fig:honocoord}
+\end{center}
+\end{figure}
+
+For the SOP-FBR (decoupled) optimisation, we have used the BFGS algorithm in combination with a set of 37500 reference geometries, 
+mapped onto a [5, 5, 5, 5, 5, 12] Cartesian product grid of reference energies. The DOF ordering is [$r_{OH}, r_{NO}, u_2, r_{ON}, u_1, \phi$] (see Table \ref{tab:dvrhono}). 
+The intervals of definition of the different DOF can be found in Table \ref{tab:dvrhono}). 
+For the sake of comparison, we have defined $u_i$ = cos $\theta_i$ (i=1,2) as in previous studies.\cite{ric04:1306, pan19:576}
+
+\begin{table}[bth!]
+\centering
+\caption{
+ {\small{
+Definition of the MCTDH primitive grid for HONO (6D). Discrete Variable Representation (DVR) basis functions are: HO, harmonic oscillator (Hermite) and cos, cosine functions.
+N is the number of primitive (DVR) grid points. The range in each case is given the first and last grid points in atomic units for the distances and $\phi$ is the torsion angle in radians.
+Cosines of the valence angles have been defined: $u_i$ = cos $\theta_i$ (i=1,2). The DOF representation is given in Figure \ref{fig:honocoord}.
+Physical modes have been combined into logical ones as follows: [$\phi$], [$r_{OH}$] [$u_2, r_{ON}$], [$u_1, r_{NO}$]. The first mode ($\phi$) has been contracted 
+(see Section IIIB in Ref.[\cite{pel13:014108}]).
+ }}
+  }\label{tab:dvrhono}
+ \vspace{13pt}
+ \setlength{\tabcolsep}{8pt}
+\begin{tabular}{c c c c}
+ \hline
+   \textbf{DOF} & \textbf{DVR} & \textbf{N} & \textbf{Range} \\
+ \hline
+   $r_{OH}$           & HO  & 18 & [1.30, 2.45]  \\
+   $r_{NO}$           & HO  & 13 & [1.90, 2.60]  \\
+   $u_2$                & HO  & 13 & [-0.65, -0.10]  \\
+   $r_{ON}$           & HO  & 16 & [2.10, 3.25] \\
+   $u_1$                & HO  & 18 & [-0.65, 0.25] \\
+   $\phi$                & cos & 32 & [0, 2$\pi$/2]     \\
+ \hline
+\end{tabular}
+\end{table}
+
+Our strategy to initialize our SOP-FBR optimisation has consisted again in generating a guess \emph{core} tensor and the associated set of SPPs using  
+the HOOI decomposition (same structure of our target SOP-FBR) using a SRP PES.
+For the latter, we have chosen the so-called $\{\zeta_{1084}\}$ set of SRP-parameters which we
+generated for the title system and which showed an accurate vibrational structure (see Ref. \cite{pan19:576} for more details).
+In Figure~\ref{hono_spps}, we display a comparison of the first four SPPs for selected DOF (a distance, an angle, and the torsion),
+$r_{NO}$, $u_1$ and $\phi$, respectively. As in the case of water, the SRP SPPs are closer to the reference ones, in turn, leading to a higher efficiency in the SOP-FBR optimisation.
+
+\begin{figure}[H]
+	\centering
+	%\includegraphics[width=\textwidth]{figures/evec_hono_1.png} \\
+	%\includegraphics[width=\textwidth]{figures/evec_hono_4.png} \\
+	%\includegraphics[width=\textwidth]{figures/evec_hono_6.png}
+         \includegraphics[scale=0.55]{figures/evec_hono_1.pdf} \\
+	\includegraphics[scale=0.55]{figures/evec_hono_4.pdf} \\
+	\includegraphics[scale=0.55]{figures/evec_hono_5.pdf}\\
+	\caption{First four SPPs for the $r_{NO}$, $u_1$, and $\phi$ DOF (see Figure \ref{fig:honocoord} 
+	and Table \ref{tab:dvrhono}) in the HONO molecule
+	obtained by HOOI Tucker decomposition using (i) the reference potential by Richter \emph{et al.}\cite{ric04:1306}
+	 (ii) the Parametric Model 7 (PM7) Hamiltonian\cite{ste13:1} and (iii) the resulting SRP.}\label{hono_spps}
+\end{figure}
+
+At this point, we make use of the particular distribution of values within the \emph{core} tensor. The latter 
+could be understood to play a role analogous to that of configuration interaction coefficients in electronic structure.
+First of all, it should be noticed that these values span a huge energy interval from 10$^7$ down to 10$^{-6}$ (values in cm$-1$).
+The maximum corresponds to 22646896 cm$-1$ and 6940 cm$-1$ is the mean value.
+Second, a large fraction of the total number of coefficients lies between $[10^{-2},10^{-3}]$ and almost 
+the half of them lie below 10$^{-2}$. Considering this particular distribution and this huge span of values,
+we can safely consider consider the \emph{core} tensor as being \emph{effectively} sparse. 
+In other words, the relative weight of a large fraction of the configurations is negligible.
+We can profit from this fact and assign zero value to all the elements below a certain threshold.
+This, in turn, implies a dramatic reduction in the dimension of the SOP-FBR configuration space, 
+thus leading to a higher efficiency and a more compact SOP-FBR final expression.\\
+
+\begin{table}[bth!]
+\centering
+\caption{
+ {\small{
+Analysis of the [5, 5, 5, 5, 5, 12] \emph{core} tensor values for HONO (see main text for the discussion). The total
+number of tensor elements is N=37500, n is the number of \emph{core} elements below a certain threshold value (Thrs) in cm$^{-1}$.
+In the last column, we define an \emph{effective} sparsity as ((N-n)/N) in percentage.
+ }}
+  }\label{tab:sparse}
+ \vspace{13pt}
+ \setlength{\tabcolsep}{8pt}
+\begin{tabular}{r r r c}
+ \hline
+    \textbf{Thrs} & \textbf{n}	 & \textbf{N-n} & \textbf{(N-n)/N} \\
+ \hline
+10$^{+7}$	&  37499 &          1 & 0.00 \\
+10$^{+6}$	&  37495 &          5 & 0.00 \\
+10$^{+5}$	&  37409 &        91 & 0.00 \\
+10$^{+4}$	&  37000 &      500 & 1.33 \\
+10$^{+3}$	&  36165 &    1335 & 3.56 \\
+10$^{+2}$	&  34834 &    2666 & 7.11 \\
+10$^{+1}$	&  33105 &    4395 & 11.72 \\
+10$^{-0}$	&  31225 &    6275 & 16.73 \\
+10$^{-1}$	&  28661 &    8839 & 23.57 \\
+10$^{-2}$	&  20041 &  17459 & 46.56 \\
+10$^{-3}$	&    3650 &  33850 & 90.27 \\
+10$^{-4}$	&      402 &  37098 & 98.93 \\
+10$^{-5}$	&        36 &  37464 & 99.90 \\
+10$^{-6}$	&          5 &  37495 & 99.99 \\
+ \hline
+\end{tabular}
+\end{table}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.4\textwidth]{figures/hono_sop12.pdf}
+	\includegraphics[width=0.495\textwidth]{figures/reg_hono_valset.jpeg}
+	\caption{Correlation plot between the reference \emph{ab initio} energies and corresponding SOP-FBR energies, 
+	and cumulative RMSE values.}\label{fig_hono_an_b}% obtained with a validation set consisting in $10^6$ points.}\label{fig_hono_an_b}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.4\textwidth]{figures/hono_hooi_val_corr.pdf}
+	\includegraphics[width=0.495\textwidth]{figures/hono_hooi_reg.pdf}
+	\caption{Correlation plot between the reference \emph{ab initio} energies and corresponding HOOI energies, 
+	and cumulative RMSE values.}\label{fig_hono_hooi_an_b}% obtained with a validation set consisting in $10^6$ points.}\label{fig_hono_hooi_an_b}
+\end{figure}
+
+To carefully assess the quality of our SOP-FBR PES, we have used a validation set consisting on 10$^6$ points
+generated in the form of a grid within the same boundaries as our reference but much denser.
+In addition to this, in order to assess/identify possible errors associated to the SOP-FBR form, we have performed
+an extra set of calculations using directly the HOOI decomposition of the original PES and
+having it transformed into SOP-FBR form (Chebyshev expansion of the basis).\\
+
+The SOP-FBR RMSE was 7.22 $cm^{-1}$, a satisfactory value somewhat larger than the one obtained for HOOI (2.93  $cm^{-1}$).
+The former value should be understood in the context of a direct fit from \emph{ab initio} points, that is, it should be compared
+to the RMSE obtained for the reference PES of about 5 cm$^{-1}$.\cite{ric04:1306}
+The reliability of the SOP-FBR has been also assessed with a validation set consisting in $10^6$ points
+for which we obtained an RMSE of 11.85 $cm^{-1}$. Analogously, the same calculation for the HOOI yielded a value of 4.20 $cm^{-1}$.
+It should be noticed that the ratio between the RMSEs in the validation and reference sets is about 1.5 for both SOP-FBR and HOOI. 
+
+In Figure~\ref{fig_hono_an_b}, we provide a graphical representation for these calculations.
+It can be observed that for the whole range of fitted energies [0, 100000] cm$^{-1}$
+a nice agreement between the reference and SOP-FBR values is obtained. At this point,
+it should highlighted that we have tackled a range of energies ten times higher than previous studies dealing with the same system.\cite{pra17:22272}
+The SOP-FBR optimisation required 0.37 hours of CPU using 12 processors.\\
+
+As an extra test of quality, we have also characterised the stationary points of the SOP-FBR PES.
+For this, we have computed the \emph{cis} and \emph{trans} minima as well as the corresponding transition state
+using a steepest descent algorithm in reduced dimensionality: we have enforced the torsion angle at the
+corresponding reference value, optimise the remaining coordinates and assess the resulting gradient. In all cases, the
+maximum value of the gradient did not exceed 10$^{-7}$ units. The resulting geometrical parameters are presented in Table~\ref{myta02}.
+As in the case of the water molecule, we obtain values that agree up to the fourth decimal place for both distances and angles.
+
+The reliability of our SOP-FBR can be further illustrated by noticing its \emph{variational} behaviour. 
+In Table \ref{tab:compPF}, we present the RMSE computed on the reference primitive grid (Table \ref{tab:dvrhono}) 
+for trimmed SOP-FBR expansions (\emph{cf.} td-MGPF \cite{pel13:014108})
+As it can be observed, 
+the results compare well (and even improve) those of POTFIT (from Table IV in Ref. \cite{pel13:014108})
+thus confirming the possibility of numerically \emph{strolling} towards different
+(and sometimes more favourable) minima than POTFIT (or HOOI) in Tucker configuration space.
+
+\begin{table}[H]
+\centering
+\caption{Comparison of the coordinate values of the stationary points
+(\emph{trans-} and \emph{cis-}minima and  \emph{cis-trans} transition state, TS) 
+for the reference PES and the SOP-FBR PES.
+Geometries obtained with the steepest descent algorithm by imposing the reference torsion angle.
+ In all cases, the maximum component of the gradient (in absolute value) lies below 10$^{-7}$ units
+ (all values are in fact between 10$^{-7}$ and 10$^{-10}$). 
+ Distances are given in atomic units and angles in radians.}\label{myta02}
+\begin{tabular}{c c c c c c c}
+\hline
+     & \multicolumn{6}{c}{\textbf{Coordinate}}\\
+\textbf{PES} & $\mathbf{r_{NO}}$ & $\mathbf{r_{ON}}$ & $\mathbf{r_{OH}}$ & $\bm{\theta_2}$ & $\bm{\theta_1}$ & $\bm{\phi}$ \\ %\midrule
+\hline
+ \multicolumn{7}{c}{\emph{trans}}\\
+ \hline
+Ref. & 2.6965 & 1.8224 & 2.2129 & 1.7773 & 1.9312 & 3.1416 \\ %\midrule
+SOP-FBR & 2.6967 & 1.8231 & 2.2133 & 1.7777  & 1.9315 & 3.1416  \\ %\midrule
+\hline
+ \multicolumn{7}{c}{\emph{cis}}\\
+\hline
+Ref. & 2.6314 & 1.8411 & 2.2369 & 1.8218 & 1.9746 & 0. \\ %\midrule
+SOP-FBR & 2.6305 & 1.8412 & 2.2374 & 1.8224 & 1.9753 & 0. \\ %\midrule
+\hline
+ \multicolumn{7}{c}{\emph{TS}}\\
+\hline
+Ref. & 2.8475 & 1.8178 &  2.2008 & 1.7575 & 1.9290 & 1.5080 \\ %\midrule
+SOP-FBR & 2.8475 & 1.8179 & 2.2009 & 1.7578 & 1.9288 & 1.5080 \\ %\midrule
+\hline
+\end{tabular}
+\end{table}
+
+\begin{table}[bth!]
+\centering
+\caption{
+ {\small{
+Analysis of the RMSE for trimmed SOP-FBR (FBR) expansions starting from the [5, 5, 5, 5, 5, 12] (see main text for the discussion). 
+The RMSE units are meV for the sake of comparison with POTFIT (PF) results obtained from Ref. \cite{pel13:014108}. 
+ }}
+  }\label{tab:compPF}
+ \vspace{13pt}
+ \setlength{\tabcolsep}{8pt}
+\begin{tabular}{c c r@{.}l  r@{.}l}
+ \hline
+     & & \multicolumn{4}{c}{\textbf{Error}} \\
+    \textbf{SPPs} & \textbf{Terms}  & \multicolumn{2}{c}{\textbf{FBR}} & \multicolumn{2}{c}{\textbf{PF}} \\
+
+ \hline
+$[3,3,3,3,3,c]$  &   243 & 20&84 & 131&68 \\
+$[4,4,3,4,4,c]$ &   768 &  5&05 & 34&06 \\
+$[4,4,4,4,4,c]$ &  1024 &  3&39 & 21&46 \\
+$[5,5,5,5,5,c]$ &  3125 &  1&93 & 0&75\\
+ \hline
+\end{tabular}
+\end{table}
+
+As definitive test of the quality of our SOP-FBR PES, we have computed its ZPE and the 20 lowest vibrationally excited eigenvalues.
+With respect to the ZPE, our value is of 4366.7 cm$^{-1}$ which nicely compares to the reference one of 4367.7 cm$^{-1}$
+and fully agrees with the HOOI one (4365.5 cm$^{-1}$). In Table \ref{tab:vibeigsthono}, we provide a comparison of the 
+results for SOP-FBR, HOOI and the reference PES (exact). As it can be observed, there is a nice agreement among the three sets.
+There is slight misestimate (common to both SOP-FBR and HOOI) of certain eigenvalues associated to the \emph{cis} well,\cite{ric04:1306}
+whose origin can safely attributed to the sampling of this particular region.  
+
+\begin{table}[tbh!]
+\centering
+\caption{{\small{
+ Comparison of the 20 lowest vibrational eigenvalues of HONO for the original PES, the HOOI,
+ and the SOP-FBR one. The first column indicates the label of the state and its character: c, \emph{cis}-well and t, \emph{trans}-well.
+  }}
+  }\label{tab:vibeigsthono}
+ \vspace{13pt}
+ \setlength{\tabcolsep}{8pt}
+\begin{tabular}{c r@{.}l r@{.}l r@{.}l}
+ \hline
+       \textbf{State} & \multicolumn{6}{c}{\textbf{Eigenenergies (cm$^{-1}$)}}\\
+        & \multicolumn{2}{c}{\textbf{SOP-FBR}} & \multicolumn{2}{c}{\textbf{HOOI}} &
+          \multicolumn{2}{l}{\textbf{Reference}} \\
+\hline
+     0&     0&0  &    0&0 &     0&0 \\
+     1c&    91&2  &   98&5 &    94&1 \\
+     2t&   600&7  &  600&6 &   600&8 \\
+     3c&   707&8  &  715&0 &   710&7 \\
+     4t&   795&7  &  795&7 &   795&9 \\
+     5c&   941&2  &  948&5 &   944&1 \\
+     6t&  1055&3  & 1055&2 &  1055&4 \\ 
+     7t&  1187&8  & 1187&6 &  1188&1 \\
+     8t&  1264&5  & 1264&4 &  1264&9 \\
+     9c&  1300&1  & 1310&4 &  1306&6 \\
+     10c& 1309&8  & 1317&0 &  1312&8 \\
+     11t& 1385&1  & 1385&0 &  1385&3 \\
+     12c& 1401&4  & 1408&8 &  1404&8\\
+     13c& 1544&8  & 1552&9 &  1547&9 \\
+     14t& 1574&5  & 1574&6 &  1574&9 \\
+     15t& 1640&7  & 1640&4 &  1640&9 \\
+     16t& 1689&7  & 1689&8 &  1689&9 \\
+     17c& 1723&0  & 1730&1 &  1726&0 \\
+     18t& 1762&4  & 1762&1 &  1762&4 \\
+     19c& 1776&6  & 1783&7 &  1779&7 \\
+     20t& 1828&7  & 1828&5 &  1829&0 \\
+\hline              
+\end{tabular}
+\end{table}
+\newpage
+
+\section{Data availability}
+The data that support the findings of this study are available from the corresponding author
+upon reasonable request.
+
+\section{Conclusions}
+
+We have presented sum-of-products Finite Basis Representation (SOP-FBR), an algorithm that
+yields a PES in Tucker form directly from a set of reference \emph{ab initio} points.
+In SOP-FBR, the Schmidt basis (\emph{aka} SPPs in the MCTDH literature) are expressed in
+terms of a weighted sum of orthonormal polynomials. The Schmidt basis are universal for the same
+type of PES and enclose in a non-evident way the topography of the PES (correlation among different DOF).  
+The SOP-FBR expression is analytical and differentiable \emph{ad infinitum} and as such, SOP-FBR  
+is ideally suited for its use in (classical or semi-classical) dynamical simulations.
+More specifically, SOP-FBR allows for a seamlessly
+interfacing with quantum dynamical codes such as MCTDH\cite{mctdh:package} or Quantics.\cite{quantics:package}
+We have shown that the SOP-FBR can be straightforwardly symmetrized by \emph{ansatz} thus
+diminishing the computational cost of the algorithm. In addition to this, we have 
+also profited from the sparse character of the Tucker \emph{core} tensors.
+The quality and smoothness of the SOP-FBR PES has been extensively benchmarked against reference potentials
+(both model and high-level \emph{ab initio} PES) by carefully analysing the different errors 
+(RMSE, correlation plots, cumulative RMSE) as well as by
+comparing the resulting vibrational eigenvalues of each PES.
+We have observed that SOP-FBR can lead to Tucker expansions
+which are \emph{more optimal} than those obtained by an equivalent POTFIT (or related methods).
+The current (beta) version of the SOP-FBR code has been written in Python 3.8.5 and will be freely distributed upon request.
+The implementation has been interfaced with the Heidelberg MCTDH software package.\cite{mctdh:package} 
+
+\section{Supplementary Material}
+
+The full list of coefficients corresponding to the SOP-FBR PES for H$_2$O and HONO are available 
+in the Supplementary Material file. Energies are given in cm$^{-1}$. In each list, the first two lines present
+(1) the core dimensions (same as the number of DOF) and
+(2) the number of Chebyshev functions per dimension, respectively. The rest of the lines present
+the Chebyshev expansion coefficients and the core tensor elements in a 
+column-major (colexicographic) ordering.
+
+\section{Acknowledgements}
+The authors would like to thank Hans-Dieter Meyer and Markus Schr\"oder (Heidelberg) for fruitful and sustained discussions.
+The authors would also like to thank Tucker Carrington (Queen's) for his careful reading of the original version of the manuscript
+and his thoughtful comments. RLPB thanks the R\'egion Hauts-de-France and the Universit\'e de Lille for a Ph.D. Fellowship.
+The authors gratefully acknowledge the computational support of Val\'erie Vallet and Florent R\'eal (Lille) and Andrei Borissov (Paris-Saclay).
+The authors acknowledge the usefulness Reviewers' comments and suggestions that have helped improving this manuscript.
+Finally, RLPB would like to especially thank Jimmy Aguilar Mena (BSC-CNS) for fruitful discussions on Computer Science related aspects.
+
+\begin{thebibliography}{63}
+\expandafter\ifx\csname natexlab\endcsname\relax\def\natexlab#1{#1}\fi
+\expandafter\ifx\csname bibnamefont\endcsname\relax
+  \def\bibnamefont#1{#1}\fi
+\expandafter\ifx\csname bibfnamefont\endcsname\relax
+  \def\bibfnamefont#1{#1}\fi
+\expandafter\ifx\csname citenamefont\endcsname\relax
+  \def\citenamefont#1{#1}\fi
+\expandafter\ifx\csname url\endcsname\relax
+  \def\url#1{\texttt{#1}}\fi
+\expandafter\ifx\csname urlprefix\endcsname\relax\def\urlprefix{URL }\fi
+\providecommand{\bibinfo}[2]{#2}
+\providecommand{\eprint}[2][]{\url{#2}}
+
+\bibitem[{\citenamefont{Beck et~al.}(2000)\citenamefont{Beck, J{\"a}ckle,
+  Worth, and Meyer}}]{bec00:1}
+\bibinfo{author}{\bibfnamefont{M.~H.} \bibnamefont{Beck}},
+  \bibinfo{author}{\bibfnamefont{A.}~\bibnamefont{J{\"a}ckle}},
+  \bibinfo{author}{\bibfnamefont{G.~A.} \bibnamefont{Worth}}, \bibnamefont{and}
+  \bibinfo{author}{\bibfnamefont{H.-D.} \bibnamefont{Meyer}},
+  \bibinfo{journal}{Phys.~Rep} \textbf{\bibinfo{volume}{324}},
+  \bibinfo{pages}{1} (\bibinfo{year}{2000}).
+
+\bibitem[{\citenamefont{Wang and Thoss}(2003)}]{wan03:1289}
+\bibinfo{author}{\bibfnamefont{H.}~\bibnamefont{Wang}} \bibnamefont{and}
+  \bibinfo{author}{\bibfnamefont{M.}~\bibnamefont{Thoss}},
+  \bibinfo{journal}{J.~Chem.\ Phys.} \textbf{\bibinfo{volume}{119}},
+  \bibinfo{pages}{1289} (\bibinfo{year}{2003}).
+
+\bibitem[{\citenamefont{Manthe}(2008)}]{man08:164116}
+\bibinfo{author}{\bibfnamefont{U.}~\bibnamefont{Manthe}},
+  \bibinfo{journal}{J.~Chem.\ Phys.} \textbf{\bibinfo{volume}{128}},
+  \bibinfo{pages}{164116} (\bibinfo{year}{2008}).
+
+\bibitem[{\citenamefont{Vendrell and Meyer}(2011)}]{ven11:044135}
+\bibinfo{author}{\bibfnamefont{O.}~\bibnamefont{Vendrell}} \bibnamefont{and}
+  \bibinfo{author}{\bibfnamefont{H.-D.} \bibnamefont{Meyer}},
+  \bibinfo{journal}{J.~Chem.\ Phys.} \textbf{\bibinfo{volume}{134}},
+  \bibinfo{pages}{044135} (\bibinfo{year}{2011}).
+
+\bibitem[{\citenamefont{R\"omer et~al.}(2013)\citenamefont{R\"omer,
+  Ruckenbauer, and Burghardt}}]{roe13:064106}
+\bibinfo{author}{\bibfnamefont{S.}~\bibnamefont{R\"omer}},
+  \bibinfo{author}{\bibfnamefont{M.}~\bibnamefont{Ruckenbauer}},
+  \bibnamefont{and}
+  \bibinfo{author}{\bibfnamefont{I.}~\bibnamefont{Burghardt}},
+  \bibinfo{journal}{J.~Chem.\ Phys.} \textbf{\bibinfo{volume}{138}},
+  \bibinfo{pages}{064106} (\bibinfo{year}{2013}).
+
+\bibitem[{\citenamefont{Richings et~al.}(2015)\citenamefont{Richings, Polyak,
+  Spinlove, Worth, Burghardt, and Lasorne}}]{ric15:269}
+\bibinfo{author}{\bibfnamefont{G.~W.} \bibnamefont{Richings}},
+  \bibinfo{author}{\bibfnamefont{I.}~\bibnamefont{Polyak}},
+  \bibinfo{author}{\bibfnamefont{K.~E.} \bibnamefont{Spinlove}},
+  \bibinfo{author}{\bibfnamefont{G.~A.} \bibnamefont{Worth}},
+  \bibinfo{author}{\bibfnamefont{I.}~\bibnamefont{Burghardt}},
+  \bibnamefont{and} \bibinfo{author}{\bibfnamefont{B.}~\bibnamefont{Lasorne}},
+  \bibinfo{journal}{Int.\ Rev.\ Phys.\ Chem.} \textbf{\bibinfo{volume}{34}},
+  \bibinfo{pages}{269} (\bibinfo{year}{2015}).
+
+\bibitem[{\citenamefont{Thomas et~al.}(2018)\citenamefont{Thomas, Carrington,
+  Agarwal, and Schaefer}}]{phi18:064108}
+\bibinfo{author}{\bibfnamefont{P.~S.} \bibnamefont{Thomas}},
+  \bibinfo{author}{\bibfnamefont{T.}~\bibnamefont{Carrington}},
+  \bibinfo{author}{\bibfnamefont{J.}~\bibnamefont{Agarwal}}, \bibnamefont{and}
+  \bibinfo{author}{\bibfnamefont{H.~F.} \bibnamefont{Schaefer}},
+  \bibinfo{journal}{J.~Chem.\ Phys.} \textbf{\bibinfo{volume}{149}},
+  \bibinfo{pages}{064108} (\bibinfo{year}{2018}).
+
+\bibitem[{\citenamefont{Mendive-Tapia et~al.}(2018)\citenamefont{Mendive-Tapia,
+  Mangaud, Firmino, de~la Lande, Desouter-Lecomte, Meyer, and
+  Gatti}}]{men18:126}
+\bibinfo{author}{\bibfnamefont{D.}~\bibnamefont{Mendive-Tapia}},
+  \bibinfo{author}{\bibfnamefont{E.}~\bibnamefont{Mangaud}},
+  \bibinfo{author}{\bibfnamefont{T.}~\bibnamefont{Firmino}},
+  \bibinfo{author}{\bibfnamefont{A.}~\bibnamefont{de~la Lande}},
+  \bibinfo{author}{\bibfnamefont{M.}~\bibnamefont{Desouter-Lecomte}},
+  \bibinfo{author}{\bibfnamefont{H.-D.} \bibnamefont{Meyer}}, \bibnamefont{and}
+  \bibinfo{author}{\bibfnamefont{F.}~\bibnamefont{Gatti}},
+  \bibinfo{journal}{J.~Phys.\ Chem.~B} \textbf{\bibinfo{volume}{122}},
+  \bibinfo{pages}{126} (\bibinfo{year}{2018}).
+
+\bibitem[{\citenamefont{Baranov and Oseledets}(2015)}]{bar15:174107}
+\bibinfo{author}{\bibfnamefont{V.}~\bibnamefont{Baranov}} \bibnamefont{and}
+  \bibinfo{author}{\bibfnamefont{I.}~\bibnamefont{Oseledets}},
+  \bibinfo{journal}{J.~Chem.\ Phys.} \textbf{\bibinfo{volume}{143}},
+  \bibinfo{pages}{174107} (\bibinfo{year}{2015}).
+
+\bibitem[{\citenamefont{Larsson}(2019)}]{lar19:204102}
+\bibinfo{author}{\bibfnamefont{H.~R.} \bibnamefont{Larsson}},
+  \bibinfo{journal}{J.~Chem.\ Phys.} \textbf{\bibinfo{volume}{151}},
+  \bibinfo{pages}{204102} (\bibinfo{year}{2019}).
+
+\bibitem[{\citenamefont{Greene and Batista}(2017)}]{gre17:4034}
+\bibinfo{author}{\bibfnamefont{S.~M.} \bibnamefont{Greene}} \bibnamefont{and}
+  \bibinfo{author}{\bibfnamefont{V.~S.} \bibnamefont{Batista}},
+  \bibinfo{journal}{J.~Chem.\ Theory Comput.} \textbf{\bibinfo{volume}{13}},
+  \bibinfo{pages}{4034} (\bibinfo{year}{2017}).
+
+\bibitem[{\citenamefont{DeGregorio and Iyengar}(2019)}]{deg19:2780}
+\bibinfo{author}{\bibfnamefont{N.}~\bibnamefont{DeGregorio}} \bibnamefont{and}
+  \bibinfo{author}{\bibfnamefont{S.~S.} \bibnamefont{Iyengar}},
+  \bibinfo{journal}{J.~Chem.\ Theory Comput.} \textbf{\bibinfo{volume}{15}},
+  \bibinfo{pages}{2780} (\bibinfo{year}{2019}).
+
+\bibitem[{\citenamefont{Gatti et~al.}(1998)\citenamefont{Gatti, Iung, Menou,
+  Justum, Nauts, and Chapuisat}}]{gat98:8804}
+\bibinfo{author}{\bibfnamefont{F.}~\bibnamefont{Gatti}},
+  \bibinfo{author}{\bibfnamefont{C.}~\bibnamefont{Iung}},
+  \bibinfo{author}{\bibfnamefont{M.}~\bibnamefont{Menou}},
+  \bibinfo{author}{\bibfnamefont{Y.}~\bibnamefont{Justum}},
+  \bibinfo{author}{\bibfnamefont{A.}~\bibnamefont{Nauts}}, \bibnamefont{and}
+  \bibinfo{author}{\bibfnamefont{X.}~\bibnamefont{Chapuisat}},
+  \bibinfo{journal}{J.~Chem.\ Phys.} \textbf{\bibinfo{volume}{108}},
+  \bibinfo{pages}{8804} (\bibinfo{year}{1998}).
+
+\bibitem[{\citenamefont{Lauvergnat and Nauts}(2002)}]{lau02:8560}
+\bibinfo{author}{\bibfnamefont{D.}~\bibnamefont{Lauvergnat}} \bibnamefont{and}
+  \bibinfo{author}{\bibfnamefont{A.}~\bibnamefont{Nauts}},
+  \bibinfo{journal}{J.~Chem.\ Phys.} \textbf{\bibinfo{volume}{116}},
+  \bibinfo{pages}{8560} (\bibinfo{year}{2002}).
+
+\bibitem[{\citenamefont{J{\"a}ckle and Meyer}(1996)}]{jae96:7974}
+\bibinfo{author}{\bibfnamefont{A.}~\bibnamefont{J{\"a}ckle}} \bibnamefont{and}
+  \bibinfo{author}{\bibfnamefont{H.-D.} \bibnamefont{Meyer}},
+  \bibinfo{journal}{J.~Chem.\ Phys.} \textbf{\bibinfo{volume}{104}},
+  \bibinfo{pages}{7974} (\bibinfo{year}{1996}).
+
+\bibitem[{\citenamefont{Pel{\'a}ez and Meyer}(2013)}]{pel13:014108}
+\bibinfo{author}{\bibfnamefont{D.}~\bibnamefont{Pel{\'a}ez}} \bibnamefont{and}
+  \bibinfo{author}{\bibfnamefont{H.-D.} \bibnamefont{Meyer}},
+  \bibinfo{journal}{J.~Chem.\ Phys.} \textbf{\bibinfo{volume}{138}},
+  \bibinfo{pages}{014108} (\bibinfo{year}{2013}).
+
+\bibitem[{\citenamefont{Schr\"oder and Meyer}(2017)}]{sch17:064105}
+\bibinfo{author}{\bibfnamefont{M.}~\bibnamefont{Schr\"oder}} \bibnamefont{and}
+  \bibinfo{author}{\bibfnamefont{H.-D.} \bibnamefont{Meyer}},
+  \bibinfo{journal}{J.~Chem.\ Phys.} \textbf{\bibinfo{volume}{147}},
+  \bibinfo{pages}{064105} (\bibinfo{year}{2017}).
+
+\bibitem[{\citenamefont{Otto}(2014)}]{ott14:014106}
+\bibinfo{author}{\bibfnamefont{F.}~\bibnamefont{Otto}},
+  \bibinfo{journal}{J.~Chem.\ Phys.} \textbf{\bibinfo{volume}{140}},
+  \bibinfo{pages}{014106} (\bibinfo{year}{2014}).
+
+\bibitem[{\citenamefont{Otto et~al.}(2018)\citenamefont{Otto, Chiang, and
+  Pel\'aez}}]{ott18:116}
+\bibinfo{author}{\bibfnamefont{F.}~\bibnamefont{Otto}},
+  \bibinfo{author}{\bibfnamefont{Y.-C.} \bibnamefont{Chiang}},
+  \bibnamefont{and} \bibinfo{author}{\bibfnamefont{D.}~\bibnamefont{Pel\'aez}},
+  \bibinfo{journal}{Chem.\ Phys.} \textbf{\bibinfo{volume}{509}},
+  \bibinfo{pages}{116} (\bibinfo{year}{2018}).
+
+\bibitem[{\citenamefont{Panad\'es-Barrueta
+  et~al.}(2019)\citenamefont{Panad\'es-Barrueta, Mart{\'i}nez-N{\'u}{\~n}ez,
+  and Pel\'aez}}]{pan19:576}
+\bibinfo{author}{\bibfnamefont{R.~L.} \bibnamefont{Panad\'es-Barrueta}},
+  \bibinfo{author}{\bibfnamefont{E.}~\bibnamefont{Mart{\'i}nez-N{\'u}{\~n}ez}},
+  \bibnamefont{and} \bibinfo{author}{\bibfnamefont{D.}~\bibnamefont{Pel\'aez}},
+  \bibinfo{journal}{Front. Chem.} \textbf{\bibinfo{volume}{7}},
+  \bibinfo{pages}{576} (\bibinfo{year}{2019}).
+
+\bibitem[{\citenamefont{Richings and Habershon}(2018)}]{ric18:134116}
+\bibinfo{author}{\bibfnamefont{G.~W.} \bibnamefont{Richings}} \bibnamefont{and}
+  \bibinfo{author}{\bibfnamefont{S.}~\bibnamefont{Habershon}},
+  \bibinfo{journal}{J.~Chem.\ Phys.} \textbf{\bibinfo{volume}{148}},
+  \bibinfo{pages}{134116} (\bibinfo{year}{2018}).
+
+\bibitem[{\citenamefont{Braams and Bowman}(2009)}]{bra09:577}
+\bibinfo{author}{\bibfnamefont{B.~J.} \bibnamefont{Braams}} \bibnamefont{and}
+  \bibinfo{author}{\bibfnamefont{J.~M.} \bibnamefont{Bowman}},
+  \bibinfo{journal}{Int.~Rev.~Phys.~Chem.} \textbf{\bibinfo{volume}{28}},
+  \bibinfo{pages}{577} (\bibinfo{year}{2009}).
+
+\bibitem[{\citenamefont{Dawes et~al.}(2007)\citenamefont{Dawes, Thompson, Guo,
+  Wagner, and Minkoff}}]{daw07:184108}
+\bibinfo{author}{\bibfnamefont{R.}~\bibnamefont{Dawes}},
+  \bibinfo{author}{\bibfnamefont{D.~L.} \bibnamefont{Thompson}},
+  \bibinfo{author}{\bibfnamefont{Y.}~\bibnamefont{Guo}},
+  \bibinfo{author}{\bibfnamefont{A.~F.} \bibnamefont{Wagner}},
+  \bibnamefont{and} \bibinfo{author}{\bibfnamefont{M.}~\bibnamefont{Minkoff}},
+  \bibinfo{journal}{J.~Chem.\ Phys.} \textbf{\bibinfo{volume}{126}},
+  \bibinfo{pages}{184108} (\bibinfo{year}{2007}).
+
+\bibitem[{\citenamefont{Sanz-Sanz et~al.}(2013)\citenamefont{Sanz-Sanz,
+  Roncero, Paniagua, and Aguado}}]{san13:184302}
+\bibinfo{author}{\bibfnamefont{C.}~\bibnamefont{Sanz-Sanz}},
+  \bibinfo{author}{\bibfnamefont{O.}~\bibnamefont{Roncero}},
+  \bibinfo{author}{\bibfnamefont{M.}~\bibnamefont{Paniagua}}, \bibnamefont{and}
+  \bibinfo{author}{\bibfnamefont{A.}~\bibnamefont{Aguado}},
+  \bibinfo{journal}{J.~Chem.\ Phys.} \textbf{\bibinfo{volume}{139}},
+  \bibinfo{pages}{184302} (\bibinfo{year}{2013}).
+
+\bibitem[{\citenamefont{Frankcombe and Collins}(2011)}]{fra11:8379}
+\bibinfo{author}{\bibfnamefont{T.}~\bibnamefont{Frankcombe}} \bibnamefont{and}
+  \bibinfo{author}{\bibfnamefont{M.}~\bibnamefont{Collins}},
+  \bibinfo{journal}{Phys.\ Chem.\ Chem.\ Phys.} \textbf{\bibinfo{volume}{13}},
+  \bibinfo{pages}{8379} (\bibinfo{year}{2011}).
+
+\bibitem[{\citenamefont{Jiang et~al.}(2016)\citenamefont{Jiang, Li, and
+  Guo}}]{jia16:479}
+\bibinfo{author}{\bibfnamefont{B.}~\bibnamefont{Jiang}},
+  \bibinfo{author}{\bibfnamefont{J.}~\bibnamefont{Li}}, \bibnamefont{and}
+  \bibinfo{author}{\bibfnamefont{H.}~\bibnamefont{Guo}},
+  \bibinfo{journal}{International Reviews in Physical Chemistry}
+  \textbf{\bibinfo{volume}{35}}, \bibinfo{pages}{479} (\bibinfo{year}{2016}).
+
+\bibitem[{\citenamefont{Unke et~al.}(2020)\citenamefont{Unke, Koner, Patra,
+  K\"aser, and Meuwly}}]{unk20:013001}
+\bibinfo{author}{\bibfnamefont{O.~T.} \bibnamefont{Unke}},
+  \bibinfo{author}{\bibfnamefont{D.}~\bibnamefont{Koner}},
+  \bibinfo{author}{\bibfnamefont{S.}~\bibnamefont{Patra}},
+  \bibinfo{author}{\bibfnamefont{S.}~\bibnamefont{K\"aser}}, \bibnamefont{and}
+  \bibinfo{author}{\bibfnamefont{M.}~\bibnamefont{Meuwly}},
+  \bibinfo{journal}{Mach. Learn.: Sci. Technol.} \textbf{\bibinfo{volume}{1}},
+  \bibinfo{pages}{013001} (\bibinfo{year}{2020}).
+
+\bibitem[{\citenamefont{Barone}(2005)}]{bar05:014108}
+\bibinfo{author}{\bibfnamefont{V.}~\bibnamefont{Barone}},
+  \bibinfo{journal}{J.~Chem.\ Phys.} \textbf{\bibinfo{volume}{122}},
+  \bibinfo{pages}{014108} (\bibinfo{year}{2005}).
+
+\bibitem[{\citenamefont{Ramakrishnan and Rauhut}(2015)}]{ram15:154118}
+\bibinfo{author}{\bibfnamefont{R.}~\bibnamefont{Ramakrishnan}}
+  \bibnamefont{and} \bibinfo{author}{\bibfnamefont{G.}~\bibnamefont{Rauhut}},
+  \bibinfo{journal}{J.~Chem.\ Phys.} \textbf{\bibinfo{volume}{142}},
+  \bibinfo{pages}{154118} (\bibinfo{year}{2015}).
+
+\bibitem[{\citenamefont{Barnes et~al.}(2017)\citenamefont{Barnes, Schindler,
+  Compagnon, and Allouche}}]{bar17:arxiv}
+\bibinfo{author}{\bibfnamefont{L.}~\bibnamefont{Barnes}},
+  \bibinfo{author}{\bibfnamefont{B.}~\bibnamefont{Schindler}},
+  \bibinfo{author}{\bibfnamefont{I.}~\bibnamefont{Compagnon}},
+  \bibnamefont{and} \bibinfo{author}{\bibfnamefont{A.-R.}
+  \bibnamefont{Allouche}} (\bibinfo{year}{2017}), \eprint{1704.02144}.
+
+\bibitem[{\citenamefont{Manzhos and {Carrington,
+  Jr.}}(2006{\natexlab{a}})}]{man06:194105}
+\bibinfo{author}{\bibfnamefont{S.}~\bibnamefont{Manzhos}} \bibnamefont{and}
+  \bibinfo{author}{\bibfnamefont{T.}~\bibnamefont{{Carrington, Jr.}}},
+  \bibinfo{journal}{J.~Chem.\ Phys.} \textbf{\bibinfo{volume}{125}},
+  \bibinfo{pages}{084109} (\bibinfo{year}{2006}{\natexlab{a}}).
+
+\bibitem[{\citenamefont{Pradhan and Brown}(2017)}]{pra17:22272}
+\bibinfo{author}{\bibfnamefont{E.}~\bibnamefont{Pradhan}} \bibnamefont{and}
+  \bibinfo{author}{\bibfnamefont{A.}~\bibnamefont{Brown}},
+  \bibinfo{journal}{Phys.\ Chem.\ Chem.\ Phys.} \textbf{\bibinfo{volume}{19}},
+  \bibinfo{pages}{22272} (\bibinfo{year}{2017}).
+
+\bibitem[{\citenamefont{Jiang and Guo}(2014)}]{jia14:034109}
+\bibinfo{author}{\bibfnamefont{B.}~\bibnamefont{Jiang}} \bibnamefont{and}
+  \bibinfo{author}{\bibfnamefont{H.}~\bibnamefont{Guo}},
+  \bibinfo{journal}{J.~Chem.\ Phys.} \textbf{\bibinfo{volume}{141}},
+  \bibinfo{pages}{034109} (\bibinfo{year}{2014}).
+
+\bibitem[{\citenamefont{Richter et~al.}(2012)\citenamefont{Richter,
+  Carbonniere, Dargelos, and Pouchand}}]{ric12:224105}
+\bibinfo{author}{\bibfnamefont{F.}~\bibnamefont{Richter}},
+  \bibinfo{author}{\bibfnamefont{P.}~\bibnamefont{Carbonniere}},
+  \bibinfo{author}{\bibfnamefont{A.}~\bibnamefont{Dargelos}}, \bibnamefont{and}
+  \bibinfo{author}{\bibfnamefont{C.}~\bibnamefont{Pouchand}},
+  \bibinfo{journal}{J.~Chem.\ Phys.} \textbf{\bibinfo{volume}{136}},
+  \bibinfo{pages}{224105} (\bibinfo{year}{2012}).
+
+\bibitem[{\citenamefont{Thomas et~al.}(2012)\citenamefont{Thomas, Somers,
+  Hoekstra, and Kroes}}]{tho12:8628}
+\bibinfo{author}{\bibfnamefont{P.~S.} \bibnamefont{Thomas}},
+  \bibinfo{author}{\bibfnamefont{M.~F.} \bibnamefont{Somers}},
+  \bibinfo{author}{\bibfnamefont{A.~W.} \bibnamefont{Hoekstra}},
+  \bibnamefont{and} \bibinfo{author}{\bibfnamefont{G.~J.} \bibnamefont{Kroes}},
+  \bibinfo{journal}{Phys.\ Chem.\ Chem.\ Phys.} \textbf{\bibinfo{volume}{14}},
+  \bibinfo{pages}{8628} (\bibinfo{year}{2012}).
+
+\bibitem[{\citenamefont{Richter et~al.}(2014)\citenamefont{Richter,
+  Carbonniere, and Pouchan}}]{ric14:1401}
+\bibinfo{author}{\bibfnamefont{F.}~\bibnamefont{Richter}},
+  \bibinfo{author}{\bibfnamefont{P.}~\bibnamefont{Carbonniere}},
+  \bibnamefont{and} \bibinfo{author}{\bibfnamefont{C.}~\bibnamefont{Pouchan}},
+  \bibinfo{journal}{J.~Chem.\ Phys.} \textbf{\bibinfo{volume}{114}},
+  \bibinfo{pages}{1401} (\bibinfo{year}{2014}).
+
+\bibitem[{\citenamefont{\'Avila and Carrington}(2015)}]{avi15:044106}
+\bibinfo{author}{\bibfnamefont{G.}~\bibnamefont{\'Avila}} \bibnamefont{and}
+  \bibinfo{author}{\bibfnamefont{T.}~\bibnamefont{Carrington}},
+  \bibinfo{journal}{J.~Chem.\ Phys.} \textbf{\bibinfo{volume}{143}},
+  \bibinfo{pages}{044106} (\bibinfo{year}{2015}).
+
+\bibitem[{\citenamefont{Aerts et~al.}(2020)\citenamefont{Aerts, Carbonniere,
+  Richter, and Brown}}]{aer20:024305}
+\bibinfo{author}{\bibfnamefont{A.}~\bibnamefont{Aerts}},
+  \bibinfo{author}{\bibfnamefont{P.}~\bibnamefont{Carbonniere}},
+  \bibinfo{author}{\bibfnamefont{F.}~\bibnamefont{Richter}}, \bibnamefont{and}
+  \bibinfo{author}{\bibfnamefont{A.}~\bibnamefont{Brown}},
+  \bibinfo{journal}{J.~Chem.\ Phys.} \textbf{\bibinfo{volume}{152}},
+  \bibinfo{pages}{024305} (\bibinfo{year}{2020}).
+
+\bibitem[{\citenamefont{Schr\"oder}(2020)}]{sch20:024108}
+\bibinfo{author}{\bibfnamefont{M.}~\bibnamefont{Schr\"oder}},
+  \bibinfo{journal}{J.~Chem.\ Phys.} \textbf{\bibinfo{volume}{152}},
+  \bibinfo{pages}{024108} (\bibinfo{year}{2020}).
+
+\bibitem[{\citenamefont{Lathauwer et~al.}(2000)\citenamefont{Lathauwer, Moor,
+  and Vandewalle}}]{lat00:1253}
+\bibinfo{author}{\bibfnamefont{L.~D.} \bibnamefont{Lathauwer}},
+  \bibinfo{author}{\bibfnamefont{B.~D.} \bibnamefont{Moor}}, \bibnamefont{and}
+  \bibinfo{author}{\bibfnamefont{J.}~\bibnamefont{Vandewalle}},
+  \bibinfo{journal}{SIAM Journal on Matrix Analysis and Applications}
+  \textbf{\bibinfo{volume}{21}}, \bibinfo{pages}{1253} (\bibinfo{year}{2000}).
+
+\bibitem[{\citenamefont{Carroll and Chang}(1970)}]{car70:283}
+\bibinfo{author}{\bibfnamefont{J.~D.} \bibnamefont{Carroll}} \bibnamefont{and}
+  \bibinfo{author}{\bibfnamefont{J.~J.} \bibnamefont{Chang}},
+  \bibinfo{journal}{Psychometrika} \textbf{\bibinfo{volume}{35}},
+  \bibinfo{pages}{283} (\bibinfo{year}{1970}).
+
+\bibitem[{\citenamefont{Harshman}(1970)}]{har70:1}
+\bibinfo{author}{\bibfnamefont{R.~A.} \bibnamefont{Harshman}},
+  \bibinfo{journal}{UCLA Working Papers in Phonetics}
+  \textbf{\bibinfo{volume}{16}}, \bibinfo{pages}{1} (\bibinfo{year}{1970}).
+
+\bibitem[{\citenamefont{Kolda and Bader}(2009)}]{kol09:455}
+\bibinfo{author}{\bibfnamefont{T.~G.} \bibnamefont{Kolda}} \bibnamefont{and}
+  \bibinfo{author}{\bibfnamefont{B.~W.} \bibnamefont{Bader}},
+  \bibinfo{journal}{SIAM Review} \textbf{\bibinfo{volume}{51}},
+  \bibinfo{pages}{455} (\bibinfo{year}{2009}).
+
+\bibitem[{\citenamefont{B.~N.~Khoromskij}(2007)}]{kho07:523}
+\bibinfo{author}{\bibfnamefont{V.~K.} \bibnamefont{B.~N.~Khoromskij}},
+  \bibinfo{journal}{Central European Journal of Mathematics}
+  \textbf{\bibinfo{volume}{5}}, \bibinfo{pages}{523} (\bibinfo{year}{2007}).
+
+\bibitem[{\citenamefont{Kossaifi et~al.}(2019)\citenamefont{Kossaifi,
+  Panagakis, Anandkumar, and Pantic}}]{kos19:925}
+\bibinfo{author}{\bibfnamefont{J.}~\bibnamefont{Kossaifi}},
+  \bibinfo{author}{\bibfnamefont{Y.}~\bibnamefont{Panagakis}},
+  \bibinfo{author}{\bibfnamefont{A.}~\bibnamefont{Anandkumar}},
+  \bibnamefont{and} \bibinfo{author}{\bibfnamefont{M.}~\bibnamefont{Pantic}},
+  \bibinfo{journal}{J. Mach. Learn. Res.} \textbf{\bibinfo{volume}{20}},
+  \bibinfo{pages}{925} (\bibinfo{year}{2019}), ISSN \bibinfo{issn}{1532-4435}.
+
+\bibitem[{\citenamefont{Manzhos and {Carrington,
+  Jr.}}(2006{\natexlab{b}})}]{man06:084109}
+\bibinfo{author}{\bibfnamefont{S.}~\bibnamefont{Manzhos}} \bibnamefont{and}
+  \bibinfo{author}{\bibfnamefont{T.}~\bibnamefont{{Carrington, Jr.}}},
+  \bibinfo{journal}{J.~Chem.\ Phys.} \textbf{\bibinfo{volume}{125}},
+  \bibinfo{pages}{084109} (\bibinfo{year}{2006}{\natexlab{b}}).
+
+\bibitem[{\citenamefont{Pel{\'a}ez et~al.}(2014)\citenamefont{Pel{\'a}ez,
+  Sadri, and Meyer}}]{pel14:42}
+\bibinfo{author}{\bibfnamefont{D.}~\bibnamefont{Pel{\'a}ez}},
+  \bibinfo{author}{\bibfnamefont{K.}~\bibnamefont{Sadri}}, \bibnamefont{and}
+  \bibinfo{author}{\bibfnamefont{H.-D.} \bibnamefont{Meyer}},
+  \bibinfo{journal}{Spectrochimica Acta part A} \textbf{\bibinfo{volume}{119}},
+  \bibinfo{pages}{42} (\bibinfo{year}{2014}).
+
+\bibitem[{\citenamefont{Pel{\'a}ez and Meyer}(2017)}]{pel17:100}
+\bibinfo{author}{\bibfnamefont{D.}~\bibnamefont{Pel{\'a}ez}} \bibnamefont{and}
+  \bibinfo{author}{\bibfnamefont{H.-D.} \bibnamefont{Meyer}},
+  \bibinfo{journal}{Chem.\ Phys.} \textbf{\bibinfo{volume}{482}},
+  \bibinfo{pages}{100} (\bibinfo{year}{2017}).
+
+\bibitem[{\citenamefont{Haller et~al.}(2019)\citenamefont{Haller, Pel{\'a}ez,
+  and Bande}}]{hal19:14754}
+\bibinfo{author}{\bibfnamefont{A.}~\bibnamefont{Haller}},
+  \bibinfo{author}{\bibfnamefont{D.}~\bibnamefont{Pel{\'a}ez}},
+  \bibnamefont{and} \bibinfo{author}{\bibfnamefont{A.}~\bibnamefont{Bande}},
+  \bibinfo{journal}{J.~Phys.\ Chem.~C} \textbf{\bibinfo{volume}{123}},
+  \bibinfo{pages}{14754} (\bibinfo{year}{2019}).
+
+\bibitem[{\citenamefont{Nest and Meyer}(2002)}]{nes02:10499}
+\bibinfo{author}{\bibfnamefont{M.}~\bibnamefont{Nest}} \bibnamefont{and}
+  \bibinfo{author}{\bibfnamefont{H.-D.} \bibnamefont{Meyer}},
+  \bibinfo{journal}{J.~Chem.\ Phys.} \textbf{\bibinfo{volume}{117}},
+  \bibinfo{pages}{10499} (\bibinfo{year}{2002}).
+
+\bibitem[{\citenamefont{Wales and Doye}(1997)}]{wal97:5111}
+\bibinfo{author}{\bibfnamefont{D.}~\bibnamefont{Wales}} \bibnamefont{and}
+  \bibinfo{author}{\bibfnamefont{J.~P.~K.} \bibnamefont{Doye}},
+  \bibinfo{journal}{J.~Phys.\ Chem.~A} \textbf{\bibinfo{volume}{101}},
+  \bibinfo{pages}{5111} (\bibinfo{year}{1997}).
+
+\bibitem[{\citenamefont{{Virtanen} et~al.}(2020)\citenamefont{{Virtanen},
+  {Gommers}, {Oliphant}, {Haberland}, {Reddy}, {Cournapeau}, {Burovski},
+  {Peterson}, {Weckesser}, {Bright} et~al.}}]{2020SciPy-NMeth}
+\bibinfo{author}{\bibfnamefont{P.}~\bibnamefont{{Virtanen}}},
+  \bibinfo{author}{\bibfnamefont{R.}~\bibnamefont{{Gommers}}},
+  \bibinfo{author}{\bibfnamefont{T.~E.} \bibnamefont{{Oliphant}}},
+  \bibinfo{author}{\bibfnamefont{M.}~\bibnamefont{{Haberland}}},
+  \bibinfo{author}{\bibfnamefont{T.}~\bibnamefont{{Reddy}}},
+  \bibinfo{author}{\bibfnamefont{D.}~\bibnamefont{{Cournapeau}}},
+  \bibinfo{author}{\bibfnamefont{E.}~\bibnamefont{{Burovski}}},
+  \bibinfo{author}{\bibfnamefont{P.}~\bibnamefont{{Peterson}}},
+  \bibinfo{author}{\bibfnamefont{W.}~\bibnamefont{{Weckesser}}},
+  \bibinfo{author}{\bibfnamefont{J.}~\bibnamefont{{Bright}}},
+  \bibnamefont{et~al.}, \bibinfo{journal}{Nature Methods}
+  \textbf{\bibinfo{volume}{17}}, \bibinfo{pages}{261} (\bibinfo{year}{2020}).
+
+\bibitem[{\citenamefont{Nocedal and Wright}(2006)}]{noc06}
+\bibinfo{author}{\bibfnamefont{J.}~\bibnamefont{Nocedal}} \bibnamefont{and}
+  \bibinfo{author}{\bibfnamefont{S.~J.} \bibnamefont{Wright}},
+  \emph{\bibinfo{title}{Numerical optimization}}
+  (\bibinfo{publisher}{Springer}, \bibinfo{address}{Heidelberg},
+  \bibinfo{year}{2006}).
+
+\bibitem[{\citenamefont{Polyansky et~al.}(1996)\citenamefont{Polyansky, Jensen,
+  and Tennyson}}]{pol96:6490}
+\bibinfo{author}{\bibfnamefont{O.~L.} \bibnamefont{Polyansky}},
+  \bibinfo{author}{\bibfnamefont{P.}~\bibnamefont{Jensen}}, \bibnamefont{and}
+  \bibinfo{author}{\bibfnamefont{J.}~\bibnamefont{Tennyson}},
+  \bibinfo{journal}{J.~Chem.\ Phys.} \textbf{\bibinfo{volume}{105}},
+  \bibinfo{pages}{6490} (\bibinfo{year}{1996}), \bibinfo{note}{pES, water}.
+
+\bibitem[{\citenamefont{Panad\'es-Barrueta and Pel\'aez}(2019)}]{pan19}
+\bibinfo{author}{\bibfnamefont{R.~L.} \bibnamefont{Panad\'es-Barrueta}}
+  \bibnamefont{and} \bibinfo{author}{\bibfnamefont{D.}~\bibnamefont{Pel\'aez}},
+  \bibinfo{journal}{\emph{SRPTucker software package}}  (\bibinfo{year}{2019}).
+
+\bibitem[{\citenamefont{Stewart}(2016)}]{ste16}
+\bibinfo{author}{\bibfnamefont{J.~J.~P.} \bibnamefont{Stewart}},
+  \bibinfo{journal}{\url{HTTP://OpenMOPAC.net}}  (\bibinfo{year}{2016}).
+
+\bibitem[{\citenamefont{Stewart}(2013)}]{ste13:1}
+\bibinfo{author}{\bibfnamefont{J.~J.~P.} \bibnamefont{Stewart}},
+  \bibinfo{journal}{J. Mol. Model.} \textbf{\bibinfo{volume}{19}},
+  \bibinfo{pages}{1} (\bibinfo{year}{2013}).
+
+\bibitem[{\citenamefont{Kan and Timmer}(1987)}]{kan87:39}
+\bibinfo{author}{\bibfnamefont{A.~H.~G.} \bibnamefont{Kan}} \bibnamefont{and}
+  \bibinfo{author}{\bibfnamefont{G.~T.} \bibnamefont{Timmer}},
+  \bibinfo{journal}{Math. Program.} \textbf{\bibinfo{volume}{39}},
+  \bibinfo{pages}{57} (\bibinfo{year}{1987}).
+
+\bibitem[{\citenamefont{Powell}(2009)}]{pow09:26}
+\bibinfo{author}{\bibfnamefont{M.~J.~D.} \bibnamefont{Powell}},
+  \bibinfo{journal}{Cambridge NA Report NA2009/06, University of Cambridge} pp.
+  \bibinfo{pages}{26--46} (\bibinfo{year}{2009}).
+
+\bibitem[{\citenamefont{Kopec et~al.}(2019)\citenamefont{Kopec,
+  Mart{\'i}nez-N{\'u}{\~n}ez, Soto, and Pel{\'a}ez}}]{kop19:e26008}
+\bibinfo{author}{\bibfnamefont{S.}~\bibnamefont{Kopec}},
+  \bibinfo{author}{\bibfnamefont{E.}~\bibnamefont{Mart{\'i}nez-N{\'u}{\~n}ez}},
+  \bibinfo{author}{\bibfnamefont{J.}~\bibnamefont{Soto}}, \bibnamefont{and}
+  \bibinfo{author}{\bibfnamefont{D.}~\bibnamefont{Pel{\'a}ez}},
+  \bibinfo{journal}{Int.\ J.\ Quant.\ Chem.} p. \bibinfo{pages}{e26008}
+  (\bibinfo{year}{2019}).
+
+\bibitem[{\citenamefont{Richter et~al.}(2004)\citenamefont{Richter, Hochlaf,
+  Rosmus, Gatti, and Meyer}}]{ric04:1306}
+\bibinfo{author}{\bibfnamefont{F.}~\bibnamefont{Richter}},
+  \bibinfo{author}{\bibfnamefont{M.}~\bibnamefont{Hochlaf}},
+  \bibinfo{author}{\bibfnamefont{P.}~\bibnamefont{Rosmus}},
+  \bibinfo{author}{\bibfnamefont{F.}~\bibnamefont{Gatti}}, \bibnamefont{and}
+  \bibinfo{author}{\bibfnamefont{H.-D.} \bibnamefont{Meyer}},
+  \bibinfo{journal}{J.~Chem.\ Phys.} \textbf{\bibinfo{volume}{120}},
+  \bibinfo{pages}{1306} (\bibinfo{year}{2004}).
+
+\bibitem[{\citenamefont{Worth et~al.}(2016)\citenamefont{Worth, Beck,
+  J{\"a}ckle, and Meyer}}]{mctdh:package}
+\bibinfo{author}{\bibfnamefont{G.~A.} \bibnamefont{Worth}},
+  \bibinfo{author}{\bibfnamefont{M.~H.} \bibnamefont{Beck}},
+  \bibinfo{author}{\bibfnamefont{A.}~\bibnamefont{J{\"a}ckle}},
+  \bibnamefont{and} \bibinfo{author}{\bibfnamefont{H.-D.} \bibnamefont{Meyer}},
+  \bibinfo{howpublished}{The {MCTDH} {P}ackage, H.-D. Meyer, {V}ersion 8.4.12.
+  {S}ee http://mctdh.uni-hd.de/} (\bibinfo{year}{2016}).
+
+\bibitem[{\citenamefont{Worth et~al.}(2015)\citenamefont{Worth, Giri, Richings,
+  Burghardt, Beck, J{\"a}ckle, and Meyer}}]{quantics:package}
+\bibinfo{author}{\bibfnamefont{G.~A.} \bibnamefont{Worth}},
+  \bibinfo{author}{\bibfnamefont{K.}~\bibnamefont{Giri}},
+  \bibinfo{author}{\bibfnamefont{G.~W.} \bibnamefont{Richings}},
+  \bibinfo{author}{\bibfnamefont{I.}~\bibnamefont{Burghardt}},
+  \bibinfo{author}{\bibfnamefont{M.~H.} \bibnamefont{Beck}},
+  \bibinfo{author}{\bibfnamefont{A.}~\bibnamefont{J{\"a}ckle}},
+  \bibnamefont{and} \bibinfo{author}{\bibfnamefont{H.-D.} \bibnamefont{Meyer}},
+  \bibinfo{howpublished}{The {QUANTICS} {P}ackage, {V}ersion 1.1, {S}ee
+  https://www2.chem.ucl.ac.uk/worthgrp/quantics/doc/quantics/citation.html/}
+  (\bibinfo{year}{2015}).
+
+\end{thebibliography}
+
+\end{document}
+
